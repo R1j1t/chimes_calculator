@@ -7,12 +7,12 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC         = mpiicpc
-CCFLAGS =	-O3 -std=c++11 -restrict
+CCFLAGS =	-O3 -std=c++11 -restrict -g	# -g used for line resolution in errors and code profiling
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK       = mpiicpc
-LINKFLAGS =	-O3  -std=c++11
+LINKFLAGS =	-O3  -std=c++11 -g 		# -g used for line resolution in errors and code profiling
 LIB = 
 SIZE =		size
 
