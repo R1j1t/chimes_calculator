@@ -1828,10 +1828,12 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     int ncoeffs_4b_quadidx = *max_element(ncoeffs_4b.begin(), ncoeffs_4b.end());
     int variablecoeff = ncoeffs_4b[quadidx];
 
-    int powers[variablecoeff][npairs] ;
+    // why do we need below size of ncoeffs_4b_quadidx x npairs?
+    // why cant we use variablecoeff x npairs?
+    // quadidx and ncoeffs_4b is constant, hence we can use ncoeffs_4b_quadidx (max value)
+    int powers[ncoeffs_4b_quadidx][npairs] ;
     double force_scalar[npairs] ;
     
-
     
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
