@@ -1825,13 +1825,13 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     // Start the force/stress/energy calculation
         
     double coeff;
-    int ncoeffs_4b_quadidx = ncoeffs_4b[quadidx];
+    int ncoeffs_4b_quadidx = *std::max_element(std::begin(ncoeffs_4b), std::end(ncoeffs_4b));
     int powers[ncoeffs_4b_quadidx][npairs] ;
     double force_scalar[npairs] ;
 
+    
     for(int coeffs=0; coeffs<ncoeffs_4b_quadidx; coeffs++)
     {
-       
         // openacc for parallel 
         for (int i=0; i<npairs; i++)
             powers[coeffs][i] = chimes_4b_powers[quadidx][coeffs][mapped_pair_idx[i]];
