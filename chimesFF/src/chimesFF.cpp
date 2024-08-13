@@ -1827,11 +1827,9 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     double coeff;
     int powers[npairs] ;
     double force_scalar[npairs] ;
-    int ncoeffs_4b_quadidx = ncoeffs_4b[quadidx] ;
 
     // Separte power matrix population of the loop.
-
-    for(int coeffs=0; coeffs<ncoeffs_4b_quadidx; coeffs++)
+    for(int coeffs=0; coeffs<ncoeffs_4b[quadidx] ; coeffs++)
     {
         coeff = chimes_4b_params[quadidx][coeffs];
         
@@ -1840,7 +1838,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     }
 
-    for(int coeffs=0; coeffs<ncoeffs_4b_quadidx; coeffs++)
+    for(int coeffs=0; coeffs<ncoeffs_4b[quadidx] ; coeffs++)
     {
         coeff = chimes_4b_params[quadidx][coeffs];
         
