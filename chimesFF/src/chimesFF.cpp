@@ -1825,12 +1825,13 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     // Start the force/stress/energy calculation
         
     double coeff;
-    int ncoeffs_4b_quadidx = *max_element(begin(ncoeffs_4b), end(ncoeffs_4b));
+    int ncoeffs_4b_quadidx = *max_element(ncoeffs_4b.begin(), ncoeffs_4b.end());
     int powers[ncoeffs_4b_quadidx][npairs] ;
     double force_scalar[npairs] ;
+    int variablecoeff = ncoeffs_4b[quadidx];
 
     
-    for(int coeffs=0; coeffs<ncoeffs_4b_quadidx; coeffs++)
+    for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         // openacc for parallel 
         for (int i=0; i<npairs; i++)
@@ -1838,7 +1839,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     }
     
-    for(int coeffs=0; coeffs<ncoeffs_4b_quadidx; coeffs++)
+    for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         coeff = chimes_4b_params[quadidx][coeffs];
 
