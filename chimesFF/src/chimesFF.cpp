@@ -1828,20 +1828,15 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     int powers[npairs] ;
     double force_scalar[npairs] ;
 
-    // Separte power matrix population of the loop.
-    for(int coeffs=0; coeffs<ncoeffs_4b[quadidx] ; coeffs++)
+    for(int coeffs=0; coeffs<ncoeffs_4b[quadidx]; coeffs++)
     {
         coeff = chimes_4b_params[quadidx][coeffs];
+        vector<int> copowers = chimes_4b_powers[quadidx][coeffs]; 
         
+        // openacc for parallel 
         for (int i=0; i<npairs; i++)
-            powers[i] = chimes_4b_powers[quadidx][coeffs][mapped_pair_idx[i]];
+            powers[i] = copowers[mapped_pair_idx[i]];
 
-    }
-
-    for(int coeffs=0; coeffs<ncoeffs_4b[quadidx] ; coeffs++)
-    {
-        coeff = chimes_4b_params[quadidx][coeffs];
-        
         double Tn_ij_ik_il =  Tn_ij[ powers[0] ] * Tn_ik[ powers[1] ] * Tn_il[ powers[2] ] ;
         double Tn_jk_jl    =  Tn_jk[ powers[3] ] * Tn_jl[ powers[4] ] ;
         double Tn_kl_5     =  Tn_kl[ powers[5] ] ;
