@@ -1826,9 +1826,11 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         
     double coeff;
     int ncoeffs_4b_quadidx = *max_element(ncoeffs_4b.begin(), ncoeffs_4b.end());
-    int powers[ncoeffs_4b_quadidx][npairs] ;
-    double force_scalar[npairs] ;
     int variablecoeff = ncoeffs_4b[quadidx];
+
+    int powers[variablecoeff][npairs] ;
+    double force_scalar[npairs] ;
+    
 
     
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
