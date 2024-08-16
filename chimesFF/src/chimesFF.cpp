@@ -1623,7 +1623,7 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
 
     double force_scalar[npairs] ;
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic, 128) 
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
                 
