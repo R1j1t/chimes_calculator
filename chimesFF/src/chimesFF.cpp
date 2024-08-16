@@ -1866,8 +1866,14 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         for (int i=0; i<npairs; i++)
         {
             powers[coeffs][i] = chimes_4b_powers[quadidx][coeffs][mapped_pair_idx[i]];
-            deriv[coeffs][i] = fcut[i] * Tnd_ij[ powers[coeffs][i] ] + fcutderiv[i] * Tn_ij[ powers[coeffs][i] ];
         }
+
+        deriv[0] = fcut[0] * Tnd_ij[ powers[coeffs][0] ] + fcutderiv[0] * Tn_ij[ powers[coeffs][0] ];
+        deriv[1] = fcut[1] * Tnd_ik[ powers[coeffs][1] ] + fcutderiv[1] * Tn_ik[ powers[coeffs][1] ];
+        deriv[2] = fcut[2] * Tnd_il[ powers[coeffs][2] ] + fcutderiv[2] * Tn_il[ powers[coeffs][2] ];
+        deriv[3] = fcut[3] * Tnd_jk[ powers[coeffs][3] ] + fcutderiv[3] * Tn_jk[ powers[coeffs][3] ];
+        deriv[4] = fcut[4] * Tnd_jl[ powers[coeffs][4] ] + fcutderiv[4] * Tn_jl[ powers[coeffs][4] ];
+        deriv[5] = fcut[5] * Tnd_kl[ powers[coeffs][5] ] + fcutderiv[5] * Tn_kl[ powers[coeffs][5] ];        
     }
 
     // update the deriv[coeffs] and force_scaler from 1D to 2D array and seperate their population
