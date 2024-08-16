@@ -1624,7 +1624,7 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
 
     double force_scalar[npairs] ;
 
-    #pragma omp parallel for reduction(+:energy) schedule(dynamic, 128)
+    #pragma omp parallel for reduction(+:energy) schedule(dynamic, 140)
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
                 
