@@ -2068,8 +2068,11 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         stress[3] -= force_scalar[coeffs][5]  * dr[5*CHDIM+1] * dr[5*CHDIM+1]; // yy tensor component
         stress[4] -= force_scalar[coeffs][5]  * dr[5*CHDIM+1] * dr[5*CHDIM+2]; // yz tensor component
         stress[5] -= force_scalar[coeffs][5]  * dr[5*CHDIM+2] * dr[5*CHDIM+2]; // zz tensor component
-#endif      
+#endif  
+    echo "coeffs: " <<  coeffs << endl;    
+    
     }
+    echo "variablecoeff-1: " <<  variablecoeff-1 << endl;    
     
 
     // #pragma omp parallel 
