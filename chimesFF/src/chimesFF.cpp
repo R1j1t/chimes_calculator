@@ -1624,7 +1624,9 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
 
     double force_scalar[npairs] ;
 
-    #pragma omp parallel for schedule(dynamic, 16) 
+    cout << "variablecoeff: " << variablecoeff << endl;
+    cout << "ncoeffs_3b_tripidx: " << ncoeffs_3b_tripidx << endl;
+    #pragma omp parallel for 
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
                 
