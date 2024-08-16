@@ -1765,13 +1765,10 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     const int natoms = 4;                     // Number of atoms in an interaction set
     const int npairs = natoms*(natoms-1)/2;    // Number of pairs in an interaction set
-    int ncoeffs_4b_quadidx = *max_element(ncoeffs_4b.begin(), ncoeffs_4b.end());
-    int variablecoeff = ncoeffs_4b[quadidx];
 
 
     double fcut[npairs] ;
     double fcutderiv[npairs] ;
-    double deriv[ncoeffs_4b_quadidx][npairs] ;
     
 
 #if DEBUG == 1  
@@ -1849,12 +1846,17 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     // Start the force/stress/energy calculation
         
     double coeff;
+    int ncoeffs_4b_quadidx = *max_element(ncoeffs_4b.begin(), ncoeffs_4b.end());
+    int variablecoeff = ncoeffs_4b[quadidx];
+
+
 
     // why do we need below size of ncoeffs_4b_quadidx x npairs?
     // why cant we use variablecoeff x npairs?
     // quadidx and ncoeffs_4b is constant, hence we can use ncoeffs_4b_quadidx (max value)
     int powers[ncoeffs_4b_quadidx][npairs] ;
     double force_scalar[ncoeffs_4b_quadidx][npairs] ;
+    double deriv[ncoeffs_4b_quadidx][npairs] ;
     
     
     
