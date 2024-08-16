@@ -1855,7 +1855,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     // why cant we use variablecoeff x npairs?
     // quadidx and ncoeffs_4b is constant, hence we can use ncoeffs_4b_quadidx (max value)
     int powers[ncoeffs_4b_quadidx][npairs] ;
-    double force_scalar[ncoeffs_4b_quadidx][npairs] ;
+    double force_scalar[npairs] ;
     double deriv[ncoeffs_4b_quadidx][npairs] ;
     
     
@@ -1879,14 +1879,6 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         deriv[coeffs][4] = fcut[4] * Tnd_jl[ powers[coeffs][4] ] + fcutderiv[4] * Tn_jl[ powers[coeffs][4] ];
         deriv[coeffs][5] = fcut[5] * Tnd_kl[ powers[coeffs][5] ] + fcutderiv[5] * Tn_kl[ powers[coeffs][5] ];        
 
-        force_scalar[coeffs][0]  = chimes_4b_params[quadidx][coeffs] * deriv[coeffs][0] * fcut_5[0] * Tn_ik[powers[coeffs][1]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][1]  = chimes_4b_params[quadidx][coeffs] * deriv[coeffs][1] * fcut_5[1] * Tn_ij[powers[coeffs][0]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][2]  = chimes_4b_params[quadidx][coeffs] * deriv[coeffs][2] * fcut_5[2] * Tn_ij[powers[coeffs][0]]  * Tn_ik[powers[coeffs][1]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][3]  = chimes_4b_params[quadidx][coeffs] * deriv[coeffs][3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[powers[coeffs][4]] * Tn_kl_5 ;
-        force_scalar[coeffs][4]  = chimes_4b_params[quadidx][coeffs] * deriv[coeffs][4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[powers[coeffs][3]] * Tn_kl_5 ;
-        force_scalar[coeffs][5]  = chimes_4b_params[quadidx][coeffs] * deriv[coeffs][5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
-
-
     }
 
     // update the deriv[coeffs] and force_scaler from 1D to 2D array and seperate their population
@@ -1901,173 +1893,165 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         double Tn_kl_5     =  Tn_kl[ powers[coeffs][5] ] ;
 
         energy += coeff * fcut_all * Tn_ij_ik_il * Tn_jk_jl * Tn_kl_5 ;        
-
-        deriv[coeffs][0] = fcut[0] * Tnd_ij[ powers[coeffs][0] ] + fcutderiv[0] * Tn_ij[ powers[coeffs][0] ];
-        deriv[coeffs][1] = fcut[1] * Tnd_ik[ powers[coeffs][1] ] + fcutderiv[1] * Tn_ik[ powers[coeffs][1] ];
-        deriv[coeffs][2] = fcut[2] * Tnd_il[ powers[coeffs][2] ] + fcutderiv[2] * Tn_il[ powers[coeffs][2] ];
-        deriv[coeffs][3] = fcut[3] * Tnd_jk[ powers[coeffs][3] ] + fcutderiv[3] * Tn_jk[ powers[coeffs][3] ];
-        deriv[coeffs][4] = fcut[4] * Tnd_jl[ powers[coeffs][4] ] + fcutderiv[4] * Tn_jl[ powers[coeffs][4] ];
-        deriv[coeffs][5] = fcut[5] * Tnd_kl[ powers[coeffs][5] ] + fcutderiv[5] * Tn_kl[ powers[coeffs][5] ];        
-
-        
-        force_scalar[coeffs][0]  = coeff * deriv[coeffs][0] * fcut_5[0] * Tn_ik[powers[coeffs][1]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][1]  = coeff * deriv[coeffs][1] * fcut_5[1] * Tn_ij[powers[coeffs][0]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][2]  = coeff * deriv[coeffs][2] * fcut_5[2] * Tn_ij[powers[coeffs][0]]  * Tn_ik[powers[coeffs][1]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][3]  = coeff * deriv[coeffs][3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[powers[coeffs][4]] * Tn_kl_5 ;
-        force_scalar[coeffs][4]  = coeff * deriv[coeffs][4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[powers[coeffs][3]] * Tn_kl_5 ;
-        force_scalar[coeffs][5]  = coeff * deriv[coeffs][5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
+   
+        force_scalar[0]  = coeff * deriv[coeffs][0] * fcut_5[0] * Tn_ik[powers[coeffs][1]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
+        force_scalar[1]  = coeff * deriv[coeffs][1] * fcut_5[1] * Tn_ij[powers[coeffs][0]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
+        force_scalar[2]  = coeff * deriv[coeffs][2] * fcut_5[2] * Tn_ij[powers[coeffs][0]]  * Tn_ik[powers[coeffs][1]] * Tn_jk_jl * Tn_kl_5 ;
+        force_scalar[3]  = coeff * deriv[coeffs][3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[powers[coeffs][4]] * Tn_kl_5 ;
+        force_scalar[4]  = coeff * deriv[coeffs][4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[powers[coeffs][3]] * Tn_kl_5 ;
+        force_scalar[5]  = coeff * deriv[coeffs][5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
 
         // Accumulate forces/stresses on/from the ij pair
-        force[0*CHDIM+0] += force_scalar[coeffs][0] * dr[0*CHDIM+0];
-        force[0*CHDIM+1] += force_scalar[coeffs][0] * dr[0*CHDIM+1];
-        force[0*CHDIM+2] += force_scalar[coeffs][0] * dr[0*CHDIM+2];
+        force[0*CHDIM+0] += force_scalar[0] * dr[0*CHDIM+0];
+        force[0*CHDIM+1] += force_scalar[0] * dr[0*CHDIM+1];
+        force[0*CHDIM+2] += force_scalar[0] * dr[0*CHDIM+2];
 
-        force[1*CHDIM+0] -= force_scalar[coeffs][0] * dr[0*CHDIM+0];
-        force[1*CHDIM+1] -= force_scalar[coeffs][0] * dr[0*CHDIM+1];
-        force[1*CHDIM+2] -= force_scalar[coeffs][0] * dr[0*CHDIM+2];   
+        force[1*CHDIM+0] -= force_scalar[0] * dr[0*CHDIM+0];
+        force[1*CHDIM+1] -= force_scalar[0] * dr[0*CHDIM+1];
+        force[1*CHDIM+2] -= force_scalar[0] * dr[0*CHDIM+2];   
 
 #ifdef USE_DISTANCE_TENSOR      
-        stress[0] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,0); // xx tensor component
-        stress[1] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,1); // xy tensor component
-        stress[2] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,2); // xz tensor component
-        stress[3] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,1,0,1); // yy tensor component
-        stress[4] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,1,0,2); // yz tensor component
-        stress[5] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,2,0,2); // zz tensor component
+        stress[0] -= force_scalar[0]  * dr2_4B(dr2,0,0,0,0); // xx tensor component
+        stress[1] -= force_scalar[0]  * dr2_4B(dr2,0,0,0,1); // xy tensor component
+        stress[2] -= force_scalar[0]  * dr2_4B(dr2,0,0,0,2); // xz tensor component
+        stress[3] -= force_scalar[0]  * dr2_4B(dr2,0,1,0,1); // yy tensor component
+        stress[4] -= force_scalar[0]  * dr2_4B(dr2,0,1,0,2); // yz tensor component
+        stress[5] -= force_scalar[0]  * dr2_4B(dr2,0,2,0,2); // zz tensor component
 #else
-        stress[0] -= force_scalar[coeffs][0]  * dr[0*CHDIM+0] * dr[0*CHDIM+0]; // xx tensor component
-        stress[1] -= force_scalar[coeffs][0]  * dr[0*CHDIM+0] * dr[0*CHDIM+1]; // xy tensor component
-        stress[2] -= force_scalar[coeffs][0]  * dr[0*CHDIM+0] * dr[0*CHDIM+2]; // xz tensor component
-        stress[3] -= force_scalar[coeffs][0]  * dr[0*CHDIM+1] * dr[0*CHDIM+1]; // yy tensor component
-        stress[4] -= force_scalar[coeffs][0]  * dr[0*CHDIM+1] * dr[0*CHDIM+2]; // yz tensor component
-        stress[5] -= force_scalar[coeffs][0]  * dr[0*CHDIM+2] * dr[0*CHDIM+2]; // zz tensor component
+        stress[0] -= force_scalar[0]  * dr[0*CHDIM+0] * dr[0*CHDIM+0]; // xx tensor component
+        stress[1] -= force_scalar[0]  * dr[0*CHDIM+0] * dr[0*CHDIM+1]; // xy tensor component
+        stress[2] -= force_scalar[0]  * dr[0*CHDIM+0] * dr[0*CHDIM+2]; // xz tensor component
+        stress[3] -= force_scalar[0]  * dr[0*CHDIM+1] * dr[0*CHDIM+1]; // yy tensor component
+        stress[4] -= force_scalar[0]  * dr[0*CHDIM+1] * dr[0*CHDIM+2]; // yz tensor component
+        stress[5] -= force_scalar[0]  * dr[0*CHDIM+2] * dr[0*CHDIM+2]; // zz tensor component
 #endif      
         
         // Accumulate forces/stresses on/from the ik pair
         
-        force[0*CHDIM+0] += force_scalar[coeffs][1] * dr[1*CHDIM+0];
-        force[0*CHDIM+1] += force_scalar[coeffs][1] * dr[1*CHDIM+1];
-        force[0*CHDIM+2] += force_scalar[coeffs][1] * dr[1*CHDIM+2];
+        force[0*CHDIM+0] += force_scalar[1] * dr[1*CHDIM+0];
+        force[0*CHDIM+1] += force_scalar[1] * dr[1*CHDIM+1];
+        force[0*CHDIM+2] += force_scalar[1] * dr[1*CHDIM+2];
 
-        force[2*CHDIM+0] -= force_scalar[coeffs][1] * dr[1*CHDIM+0];
-        force[2*CHDIM+1] -= force_scalar[coeffs][1] * dr[1*CHDIM+1];
-        force[2*CHDIM+2] -= force_scalar[coeffs][1] * dr[1*CHDIM+2];   
+        force[2*CHDIM+0] -= force_scalar[1] * dr[1*CHDIM+0];
+        force[2*CHDIM+1] -= force_scalar[1] * dr[1*CHDIM+1];
+        force[2*CHDIM+2] -= force_scalar[1] * dr[1*CHDIM+2];   
 
 #if USE_DISTANCE_TENSOR     
-        stress[0] -= force_scalar[coeffs][1]  * dr2_4B(dr2,1,0,1,0); // xx tensor component
-        stress[1] -= force_scalar[coeffs][1]  * dr2_4B(dr2,1,0,1,1); // xy tensor component
-        stress[2] -= force_scalar[coeffs][1]  * dr2_4B(dr2,1,0,1,2); // xz tensor component
-        stress[3] -= force_scalar[coeffs][1]  * dr2_4B(dr2,1,1,1,1); // yy tensor component
-        stress[4] -= force_scalar[coeffs][1]  * dr2_4B(dr2,1,1,1,2); // yz tensor component
-        stress[5] -= force_scalar[coeffs][1]  * dr2_4B(dr2,1,2,1,2); // zz tensor component
+        stress[0] -= force_scalar[1]  * dr2_4B(dr2,1,0,1,0); // xx tensor component
+        stress[1] -= force_scalar[1]  * dr2_4B(dr2,1,0,1,1); // xy tensor component
+        stress[2] -= force_scalar[1]  * dr2_4B(dr2,1,0,1,2); // xz tensor component
+        stress[3] -= force_scalar[1]  * dr2_4B(dr2,1,1,1,1); // yy tensor component
+        stress[4] -= force_scalar[1]  * dr2_4B(dr2,1,1,1,2); // yz tensor component
+        stress[5] -= force_scalar[1]  * dr2_4B(dr2,1,2,1,2); // zz tensor component
 #else        
-        stress[0] -= force_scalar[coeffs][1]  * dr[1*CHDIM+0] * dr[1*CHDIM+0]; // xx tensor component
-        stress[1] -= force_scalar[coeffs][1]  * dr[1*CHDIM+0] * dr[1*CHDIM+1]; // xy tensor component
-        stress[2] -= force_scalar[coeffs][1]  * dr[1*CHDIM+0] * dr[1*CHDIM+2]; // xz tensor component
-        stress[3] -= force_scalar[coeffs][1]  * dr[1*CHDIM+1] * dr[1*CHDIM+1]; // yy tensor component
-        stress[4] -= force_scalar[coeffs][1]  * dr[1*CHDIM+1] * dr[1*CHDIM+2]; // yz tensor component
-        stress[5] -= force_scalar[coeffs][1]  * dr[1*CHDIM+2] * dr[1*CHDIM+2]; // zz tensor component
+        stress[0] -= force_scalar[1]  * dr[1*CHDIM+0] * dr[1*CHDIM+0]; // xx tensor component
+        stress[1] -= force_scalar[1]  * dr[1*CHDIM+0] * dr[1*CHDIM+1]; // xy tensor component
+        stress[2] -= force_scalar[1]  * dr[1*CHDIM+0] * dr[1*CHDIM+2]; // xz tensor component
+        stress[3] -= force_scalar[1]  * dr[1*CHDIM+1] * dr[1*CHDIM+1]; // yy tensor component
+        stress[4] -= force_scalar[1]  * dr[1*CHDIM+1] * dr[1*CHDIM+2]; // yz tensor component
+        stress[5] -= force_scalar[1]  * dr[1*CHDIM+2] * dr[1*CHDIM+2]; // zz tensor component
 #endif      
         // Accumulate forces/stresses on/from the il pair
         
-        force[0*CHDIM+0] += force_scalar[coeffs][2] * dr[2*CHDIM+0];
-        force[0*CHDIM+1] += force_scalar[coeffs][2] * dr[2*CHDIM+1];
-        force[0*CHDIM+2] += force_scalar[coeffs][2] * dr[2*CHDIM+2];
+        force[0*CHDIM+0] += force_scalar[2] * dr[2*CHDIM+0];
+        force[0*CHDIM+1] += force_scalar[2] * dr[2*CHDIM+1];
+        force[0*CHDIM+2] += force_scalar[2] * dr[2*CHDIM+2];
 
-        force[3*CHDIM+0] -= force_scalar[coeffs][2] * dr[2*CHDIM+0];
-        force[3*CHDIM+1] -= force_scalar[coeffs][2] * dr[2*CHDIM+1];
-        force[3*CHDIM+2] -= force_scalar[coeffs][2] * dr[2*CHDIM+2];   
+        force[3*CHDIM+0] -= force_scalar[2] * dr[2*CHDIM+0];
+        force[3*CHDIM+1] -= force_scalar[2] * dr[2*CHDIM+1];
+        force[3*CHDIM+2] -= force_scalar[2] * dr[2*CHDIM+2];   
 
 #ifdef USE_DISTANCE_TENSOR        
-        stress[0] -= force_scalar[coeffs][2]  * dr2_4B(dr2,2,0,2,0); // xx tensor component
-        stress[1] -= force_scalar[coeffs][2]  * dr2_4B(dr2,2,0,2,1); // xy tensor component
-        stress[2] -= force_scalar[coeffs][2]  * dr2_4B(dr2,2,0,2,2); // xz tensor component
-        stress[3] -= force_scalar[coeffs][2]  * dr2_4B(dr2,2,1,2,1); // yy tensor component
-        stress[4] -= force_scalar[coeffs][2]  * dr2_4B(dr2,2,1,2,2); // yz tensor component
-        stress[5] -= force_scalar[coeffs][2]  * dr2_4B(dr2,2,2,2,2); // zz tensor component           
+        stress[0] -= force_scalar[2]  * dr2_4B(dr2,2,0,2,0); // xx tensor component
+        stress[1] -= force_scalar[2]  * dr2_4B(dr2,2,0,2,1); // xy tensor component
+        stress[2] -= force_scalar[2]  * dr2_4B(dr2,2,0,2,2); // xz tensor component
+        stress[3] -= force_scalar[2]  * dr2_4B(dr2,2,1,2,1); // yy tensor component
+        stress[4] -= force_scalar[2]  * dr2_4B(dr2,2,1,2,2); // yz tensor component
+        stress[5] -= force_scalar[2]  * dr2_4B(dr2,2,2,2,2); // zz tensor component           
 #else       
-        stress[0] -= force_scalar[coeffs][2]  * dr[2*CHDIM+0] * dr[2*CHDIM+0]; // xx tensor component
-        stress[1] -= force_scalar[coeffs][2]  * dr[2*CHDIM+0] * dr[2*CHDIM+1]; // xy tensor component
-        stress[2] -= force_scalar[coeffs][2]  * dr[2*CHDIM+0] * dr[2*CHDIM+2]; // xz tensor component
-        stress[3] -= force_scalar[coeffs][2]  * dr[2*CHDIM+1] * dr[2*CHDIM+1]; // yy tensor component
-        stress[4] -= force_scalar[coeffs][2]  * dr[2*CHDIM+1] * dr[2*CHDIM+2]; // yz tensor component
-        stress[5] -= force_scalar[coeffs][2]  * dr[2*CHDIM+2] * dr[2*CHDIM+2]; // zz tensor component           
+        stress[0] -= force_scalar[2]  * dr[2*CHDIM+0] * dr[2*CHDIM+0]; // xx tensor component
+        stress[1] -= force_scalar[2]  * dr[2*CHDIM+0] * dr[2*CHDIM+1]; // xy tensor component
+        stress[2] -= force_scalar[2]  * dr[2*CHDIM+0] * dr[2*CHDIM+2]; // xz tensor component
+        stress[3] -= force_scalar[2]  * dr[2*CHDIM+1] * dr[2*CHDIM+1]; // yy tensor component
+        stress[4] -= force_scalar[2]  * dr[2*CHDIM+1] * dr[2*CHDIM+2]; // yz tensor component
+        stress[5] -= force_scalar[2]  * dr[2*CHDIM+2] * dr[2*CHDIM+2]; // zz tensor component           
 #endif
         
         // Accumulate forces/stresses on/from the jk pair
         
-        force[1*CHDIM+0] += force_scalar[coeffs][3] * dr[3*CHDIM+0];
-        force[1*CHDIM+1] += force_scalar[coeffs][3] * dr[3*CHDIM+1];
-        force[1*CHDIM+2] += force_scalar[coeffs][3] * dr[3*CHDIM+2];
+        force[1*CHDIM+0] += force_scalar[3] * dr[3*CHDIM+0];
+        force[1*CHDIM+1] += force_scalar[3] * dr[3*CHDIM+1];
+        force[1*CHDIM+2] += force_scalar[3] * dr[3*CHDIM+2];
 
-        force[2*CHDIM+0] -= force_scalar[coeffs][3] * dr[3*CHDIM+0];
-        force[2*CHDIM+1] -= force_scalar[coeffs][3] * dr[3*CHDIM+1];
-        force[2*CHDIM+2] -= force_scalar[coeffs][3] * dr[3*CHDIM+2];   
+        force[2*CHDIM+0] -= force_scalar[3] * dr[3*CHDIM+0];
+        force[2*CHDIM+1] -= force_scalar[3] * dr[3*CHDIM+1];
+        force[2*CHDIM+2] -= force_scalar[3] * dr[3*CHDIM+2];   
 
 #ifdef USE_DISTANCE_TENSOR      
-        stress[0] -= force_scalar[coeffs][3]  * dr2_4B(dr2,3,0,3,0); // xx tensor component
-        stress[1] -= force_scalar[coeffs][3]  * dr2_4B(dr2,3,0,3,1); // xy tensor component
-        stress[2] -= force_scalar[coeffs][3]  * dr2_4B(dr2,3,0,3,2); // xz tensor component
-        stress[3] -= force_scalar[coeffs][3]  * dr2_4B(dr2,3,1,3,1); // yy tensor component
-        stress[4] -= force_scalar[coeffs][3]  * dr2_4B(dr2,3,1,3,2); // yz tensor component
-        stress[5] -= force_scalar[coeffs][3]  * dr2_4B(dr2,3,2,3,2); // zz tensor component
+        stress[0] -= force_scalar[3]  * dr2_4B(dr2,3,0,3,0); // xx tensor component
+        stress[1] -= force_scalar[3]  * dr2_4B(dr2,3,0,3,1); // xy tensor component
+        stress[2] -= force_scalar[3]  * dr2_4B(dr2,3,0,3,2); // xz tensor component
+        stress[3] -= force_scalar[3]  * dr2_4B(dr2,3,1,3,1); // yy tensor component
+        stress[4] -= force_scalar[3]  * dr2_4B(dr2,3,1,3,2); // yz tensor component
+        stress[5] -= force_scalar[3]  * dr2_4B(dr2,3,2,3,2); // zz tensor component
 #else
-        stress[0] -= force_scalar[coeffs][3]  * dr[3*CHDIM+0] * dr[3*CHDIM+0]; // xx tensor component
-        stress[1] -= force_scalar[coeffs][3]  * dr[3*CHDIM+0] * dr[3*CHDIM+1]; // xy tensor component
-        stress[2] -= force_scalar[coeffs][3]  * dr[3*CHDIM+0] * dr[3*CHDIM+2]; // xz tensor component
-        stress[3] -= force_scalar[coeffs][3]  * dr[3*CHDIM+1] * dr[3*CHDIM+1]; // yy tensor component
-        stress[4] -= force_scalar[coeffs][3]  * dr[3*CHDIM+1] * dr[3*CHDIM+2]; // yz tensor component
-        stress[5] -= force_scalar[coeffs][3]  * dr[3*CHDIM+2] * dr[3*CHDIM+2]; // zz tensor component
+        stress[0] -= force_scalar[3]  * dr[3*CHDIM+0] * dr[3*CHDIM+0]; // xx tensor component
+        stress[1] -= force_scalar[3]  * dr[3*CHDIM+0] * dr[3*CHDIM+1]; // xy tensor component
+        stress[2] -= force_scalar[3]  * dr[3*CHDIM+0] * dr[3*CHDIM+2]; // xz tensor component
+        stress[3] -= force_scalar[3]  * dr[3*CHDIM+1] * dr[3*CHDIM+1]; // yy tensor component
+        stress[4] -= force_scalar[3]  * dr[3*CHDIM+1] * dr[3*CHDIM+2]; // yz tensor component
+        stress[5] -= force_scalar[3]  * dr[3*CHDIM+2] * dr[3*CHDIM+2]; // zz tensor component
 #endif
         
         // Accumulate forces/stresses on/from the jl pair
         
-        force[1*CHDIM+0] += force_scalar[coeffs][4] * dr[4*CHDIM+0];
-        force[1*CHDIM+1] += force_scalar[coeffs][4] * dr[4*CHDIM+1];
-        force[1*CHDIM+2] += force_scalar[coeffs][4] * dr[4*CHDIM+2];
+        force[1*CHDIM+0] += force_scalar[4] * dr[4*CHDIM+0];
+        force[1*CHDIM+1] += force_scalar[4] * dr[4*CHDIM+1];
+        force[1*CHDIM+2] += force_scalar[4] * dr[4*CHDIM+2];
 
-        force[3*CHDIM+0] -= force_scalar[coeffs][4] * dr[4*CHDIM+0];
-        force[3*CHDIM+1] -= force_scalar[coeffs][4] * dr[4*CHDIM+1];
-        force[3*CHDIM+2] -= force_scalar[coeffs][4] * dr[4*CHDIM+2];     
+        force[3*CHDIM+0] -= force_scalar[4] * dr[4*CHDIM+0];
+        force[3*CHDIM+1] -= force_scalar[4] * dr[4*CHDIM+1];
+        force[3*CHDIM+2] -= force_scalar[4] * dr[4*CHDIM+2];     
 
 #ifdef USE_DISTANCE_TENSOR      
-        stress[0] -= force_scalar[coeffs][4]  * dr2_4B(dr2,4,0,4,0); // xx tensor component
-        stress[1] -= force_scalar[coeffs][4]  * dr2_4B(dr2,4,0,4,1); // xy tensor component
-        stress[2] -= force_scalar[coeffs][4]  * dr2_4B(dr2,4,0,4,2); // xz tensor component
-        stress[3] -= force_scalar[coeffs][4]  * dr2_4B(dr2,4,1,4,1); // yy tensor component
-        stress[4] -= force_scalar[coeffs][4]  * dr2_4B(dr2,4,1,4,2); // yz tensor component
-        stress[5] -= force_scalar[coeffs][4]  * dr2_4B(dr2,4,2,4,2); // zz tensor component
+        stress[0] -= force_scalar[4]  * dr2_4B(dr2,4,0,4,0); // xx tensor component
+        stress[1] -= force_scalar[4]  * dr2_4B(dr2,4,0,4,1); // xy tensor component
+        stress[2] -= force_scalar[4]  * dr2_4B(dr2,4,0,4,2); // xz tensor component
+        stress[3] -= force_scalar[4]  * dr2_4B(dr2,4,1,4,1); // yy tensor component
+        stress[4] -= force_scalar[4]  * dr2_4B(dr2,4,1,4,2); // yz tensor component
+        stress[5] -= force_scalar[4]  * dr2_4B(dr2,4,2,4,2); // zz tensor component
 #else       
-        stress[0] -= force_scalar[coeffs][4]  * dr[4*CHDIM+0] * dr[4*CHDIM+0]; // xx tensor component
-        stress[1] -= force_scalar[coeffs][4]  * dr[4*CHDIM+0] * dr[4*CHDIM+1]; // xy tensor component
-        stress[2] -= force_scalar[coeffs][4]  * dr[4*CHDIM+0] * dr[4*CHDIM+2]; // xz tensor component
-        stress[3] -= force_scalar[coeffs][4]  * dr[4*CHDIM+1] * dr[4*CHDIM+1]; // yy tensor component
-        stress[4] -= force_scalar[coeffs][4]  * dr[4*CHDIM+1] * dr[4*CHDIM+2]; // yz tensor component
-        stress[5] -= force_scalar[coeffs][4]  * dr[4*CHDIM+2] * dr[4*CHDIM+2]; // zz tensor component
+        stress[0] -= force_scalar[4]  * dr[4*CHDIM+0] * dr[4*CHDIM+0]; // xx tensor component
+        stress[1] -= force_scalar[4]  * dr[4*CHDIM+0] * dr[4*CHDIM+1]; // xy tensor component
+        stress[2] -= force_scalar[4]  * dr[4*CHDIM+0] * dr[4*CHDIM+2]; // xz tensor component
+        stress[3] -= force_scalar[4]  * dr[4*CHDIM+1] * dr[4*CHDIM+1]; // yy tensor component
+        stress[4] -= force_scalar[4]  * dr[4*CHDIM+1] * dr[4*CHDIM+2]; // yz tensor component
+        stress[5] -= force_scalar[4]  * dr[4*CHDIM+2] * dr[4*CHDIM+2]; // zz tensor component
 #endif      
         // Accumulate forces/stresses on/from the kl pair
         
-        force[2*CHDIM+0] += force_scalar[coeffs][5] * dr[5*CHDIM+0];
-        force[2*CHDIM+1] += force_scalar[coeffs][5] * dr[5*CHDIM+1];
-        force[2*CHDIM+2] += force_scalar[coeffs][5] * dr[5*CHDIM+2];
+        force[2*CHDIM+0] += force_scalar[5] * dr[5*CHDIM+0];
+        force[2*CHDIM+1] += force_scalar[5] * dr[5*CHDIM+1];
+        force[2*CHDIM+2] += force_scalar[5] * dr[5*CHDIM+2];
 
-        force[3*CHDIM+0] -= force_scalar[coeffs][5] * dr[5*CHDIM+0];
-        force[3*CHDIM+1] -= force_scalar[coeffs][5] * dr[5*CHDIM+1];
-        force[3*CHDIM+2] -= force_scalar[coeffs][5] * dr[5*CHDIM+2];     
+        force[3*CHDIM+0] -= force_scalar[5] * dr[5*CHDIM+0];
+        force[3*CHDIM+1] -= force_scalar[5] * dr[5*CHDIM+1];
+        force[3*CHDIM+2] -= force_scalar[5] * dr[5*CHDIM+2];     
 
 #ifdef USE_DISTANCE_TENSOR
-        stress[0] -= force_scalar[coeffs][5]  * dr2_4B(dr2,5,0,5,0); // xx tensor component
-        stress[1] -= force_scalar[coeffs][5]  * dr2_4B(dr2,5,0,5,1); // xy tensor component
-        stress[2] -= force_scalar[coeffs][5]  * dr2_4B(dr2,5,0,5,2); // xz tensor component
-        stress[3] -= force_scalar[coeffs][5]  * dr2_4B(dr2,5,1,5,1); // yy tensor component
-        stress[4] -= force_scalar[coeffs][5]  * dr2_4B(dr2,5,1,5,2); // yz tensor component
-        stress[5] -= force_scalar[coeffs][5]  * dr2_4B(dr2,5,2,5,2); // zz tensor component
+        stress[0] -= force_scalar[5]  * dr2_4B(dr2,5,0,5,0); // xx tensor component
+        stress[1] -= force_scalar[5]  * dr2_4B(dr2,5,0,5,1); // xy tensor component
+        stress[2] -= force_scalar[5]  * dr2_4B(dr2,5,0,5,2); // xz tensor component
+        stress[3] -= force_scalar[5]  * dr2_4B(dr2,5,1,5,1); // yy tensor component
+        stress[4] -= force_scalar[5]  * dr2_4B(dr2,5,1,5,2); // yz tensor component
+        stress[5] -= force_scalar[5]  * dr2_4B(dr2,5,2,5,2); // zz tensor component
 #else       
-        stress[0] -= force_scalar[coeffs][5]  * dr[5*CHDIM+0] * dr[5*CHDIM+0]; // xx tensor component
-        stress[1] -= force_scalar[coeffs][5]  * dr[5*CHDIM+0] * dr[5*CHDIM+1]; // xy tensor component
-        stress[2] -= force_scalar[coeffs][5]  * dr[5*CHDIM+0] * dr[5*CHDIM+2]; // xz tensor component
-        stress[3] -= force_scalar[coeffs][5]  * dr[5*CHDIM+1] * dr[5*CHDIM+1]; // yy tensor component
-        stress[4] -= force_scalar[coeffs][5]  * dr[5*CHDIM+1] * dr[5*CHDIM+2]; // yz tensor component
-        stress[5] -= force_scalar[coeffs][5]  * dr[5*CHDIM+2] * dr[5*CHDIM+2]; // zz tensor component
+        stress[0] -= force_scalar[5]  * dr[5*CHDIM+0] * dr[5*CHDIM+0]; // xx tensor component
+        stress[1] -= force_scalar[5]  * dr[5*CHDIM+0] * dr[5*CHDIM+1]; // xy tensor component
+        stress[2] -= force_scalar[5]  * dr[5*CHDIM+0] * dr[5*CHDIM+2]; // xz tensor component
+        stress[3] -= force_scalar[5]  * dr[5*CHDIM+1] * dr[5*CHDIM+1]; // yy tensor component
+        stress[4] -= force_scalar[5]  * dr[5*CHDIM+1] * dr[5*CHDIM+2]; // yz tensor component
+        stress[5] -= force_scalar[5]  * dr[5*CHDIM+2] * dr[5*CHDIM+2]; // zz tensor component
 #endif  
     cout << "coeffs: " <<  coeffs << endl;    
     
@@ -2077,12 +2061,12 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     // #pragma omp parallel 
     // {
-        force_scalar_in[0] = force_scalar[variablecoeff-1][0];
-        force_scalar_in[1] = force_scalar[variablecoeff-1][1];
-        force_scalar_in[2] = force_scalar[variablecoeff-1][2];
-        force_scalar_in[3] = force_scalar[variablecoeff-1][3];
-        force_scalar_in[4] = force_scalar[variablecoeff-1][4];
-        force_scalar_in[5] = force_scalar[variablecoeff-1][5];
+        force_scalar_in[0] = force_scalar[0];
+        force_scalar_in[1] = force_scalar[1];
+        force_scalar_in[2] = force_scalar[2];
+        force_scalar_in[3] = force_scalar[3];
+        force_scalar_in[4] = force_scalar[4];
+        force_scalar_in[5] = force_scalar[5];
     // }
     return;
 }
