@@ -1865,19 +1865,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     {
         for (int i=0; i<npairs; i++)
             powers[coeffs][i] = chimes_4b_powers[quadidx][coeffs][mapped_pair_idx[i]];
-
-        double Tn_ij_ik_il =  Tn_ij[ powers[coeffs][0] ] * Tn_ik[ powers[coeffs][1] ] * Tn_il[ powers[coeffs][2] ] ;
-        double Tn_jk_jl    =  Tn_jk[ powers[coeffs][3] ] * Tn_jl[ powers[coeffs][4] ] ;
-        double Tn_kl_5     =  Tn_kl[ powers[coeffs][5] ] ;
-
-        // coeff = chimes_4b_params[quadidx][coeffs];
-
-        deriv[coeffs][0] = fcut[0] * Tnd_ij[ powers[coeffs][0] ] + fcutderiv[0] * Tn_ij[ powers[coeffs][0] ];
-        deriv[coeffs][1] = fcut[1] * Tnd_ik[ powers[coeffs][1] ] + fcutderiv[1] * Tn_ik[ powers[coeffs][1] ];
-        deriv[coeffs][2] = fcut[2] * Tnd_il[ powers[coeffs][2] ] + fcutderiv[2] * Tn_il[ powers[coeffs][2] ];
-        deriv[coeffs][3] = fcut[3] * Tnd_jk[ powers[coeffs][3] ] + fcutderiv[3] * Tn_jk[ powers[coeffs][3] ];
-        deriv[coeffs][4] = fcut[4] * Tnd_jl[ powers[coeffs][4] ] + fcutderiv[4] * Tn_jl[ powers[coeffs][4] ];
-        deriv[coeffs][5] = fcut[5] * Tnd_kl[ powers[coeffs][5] ] + fcutderiv[5] * Tn_kl[ powers[coeffs][5] ];        
+            deriv[coeffs][i] = fcut[i] * Tnd_ij[ powers[coeffs][i] ] + fcutderiv[i] * Tn_ij[ powers[coeffs][i] ];
 
     }
 
