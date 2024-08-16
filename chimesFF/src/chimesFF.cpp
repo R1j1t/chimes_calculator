@@ -1872,9 +1872,8 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     }
 
     // update the deriv[coeffs] and force_scaler from 1D to 2D array and seperate their population
-    int coeffs;
-    #pragma omp parallel for private(coeffs)
-    for(coeffs=0 ; coeffs<variablecoeff; coeffs++)
+    #pragma omp parallel for private(deriv)
+    for(int coeffs=0 ; coeffs<variablecoeff; coeffs++)
     {
         deriv[coeffs][0] = fcut[0] * Tnd_ij[ powers[coeffs][0] ] + fcutderiv[0] * Tn_ij[ powers[coeffs][0] ];
         deriv[coeffs][1] = fcut[1] * Tnd_ik[ powers[coeffs][1] ] + fcutderiv[1] * Tn_ik[ powers[coeffs][1] ];
