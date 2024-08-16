@@ -1540,7 +1540,7 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
     // Assumes distances are atom_2 - atom_1
     //
     // *note: force and dr are packed vectors of coordinates.
-    omp_set_num_threads(16);
+    omp_set_num_threads(8);
 
     const int natoms = 3;                   // Number of atoms in an interaction set
     const int npairs = natoms*(natoms-1)/2; // Number of pairs in an interaction set
@@ -1624,7 +1624,7 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
 
     double force_scalar[npairs] ;
 
-    #pragma omp parallel for reduction(+:energy) schedule(dynamic)
+    #pragma omp parallel for reduction(+:energy) schedule(dynamic, 30)
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
                 
