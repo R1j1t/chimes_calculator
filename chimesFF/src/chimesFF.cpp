@@ -1873,13 +1873,6 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
-        double Tn_ij_ik_il =  Tn_ij[ powers[coeffs][0] ] * Tn_ik[ powers[coeffs][1] ] * Tn_il[ powers[coeffs][2] ] ;
-        double Tn_jk_jl    =  Tn_jk[ powers[coeffs][3] ] * Tn_jl[ powers[coeffs][4] ] ;
-        double Tn_kl_5     =  Tn_kl[ powers[coeffs][5] ] ;
-
-        coeff = chimes_4b_params[quadidx][coeffs];
-
-        energy += coeff * fcut_all * Tn_ij_ik_il * Tn_jk_jl * Tn_kl_5 ;        
 
         deriv[coeffs][0] = fcut[0] * Tnd_ij[ powers[coeffs][0] ] + fcutderiv[0] * Tn_ij[ powers[coeffs][0] ];
         deriv[coeffs][1] = fcut[1] * Tnd_ik[ powers[coeffs][1] ] + fcutderiv[1] * Tn_ik[ powers[coeffs][1] ];
@@ -1888,19 +1881,27 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         deriv[coeffs][4] = fcut[4] * Tnd_jl[ powers[coeffs][4] ] + fcutderiv[4] * Tn_jl[ powers[coeffs][4] ];
         deriv[coeffs][5] = fcut[5] * Tnd_kl[ powers[coeffs][5] ] + fcutderiv[5] * Tn_kl[ powers[coeffs][5] ];  
 
-        force_scalar[coeffs][0]  = coeff * deriv[coeffs][0] * fcut_5[0] * Tn_ik[powers[coeffs][1]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][1]  = coeff * deriv[coeffs][1] * fcut_5[1] * Tn_ij[powers[coeffs][0]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][2]  = coeff * deriv[coeffs][2] * fcut_5[2] * Tn_ij[powers[coeffs][0]]  * Tn_ik[powers[coeffs][1]] * Tn_jk_jl * Tn_kl_5 ;
-        force_scalar[coeffs][3]  = coeff * deriv[coeffs][3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[powers[coeffs][4]] * Tn_kl_5 ;
-        force_scalar[coeffs][4]  = coeff * deriv[coeffs][4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[powers[coeffs][3]] * Tn_kl_5 ;
-        force_scalar[coeffs][5]  = coeff * deriv[coeffs][5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
-
     }
 
 
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
 
+        double Tn_ij_ik_il =  Tn_ij[ powers[coeffs][0] ] * Tn_ik[ powers[coeffs][1] ] * Tn_il[ powers[coeffs][2] ] ;
+        double Tn_jk_jl    =  Tn_jk[ powers[coeffs][3] ] * Tn_jl[ powers[coeffs][4] ] ;
+        double Tn_kl_5     =  Tn_kl[ powers[coeffs][5] ] ;
+
+        coeff = chimes_4b_params[quadidx][coeffs];
+
+        energy += coeff * fcut_all * Tn_ij_ik_il * Tn_jk_jl * Tn_kl_5 ;        
+
+
+        force_scalar[coeffs][0]  = coeff * deriv[coeffs][0] * fcut_5[0] * Tn_ik[powers[coeffs][1]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
+        force_scalar[coeffs][1]  = coeff * deriv[coeffs][1] * fcut_5[1] * Tn_ij[powers[coeffs][0]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
+        force_scalar[coeffs][2]  = coeff * deriv[coeffs][2] * fcut_5[2] * Tn_ij[powers[coeffs][0]]  * Tn_ik[powers[coeffs][1]] * Tn_jk_jl * Tn_kl_5 ;
+        force_scalar[coeffs][3]  = coeff * deriv[coeffs][3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[powers[coeffs][4]] * Tn_kl_5 ;
+        force_scalar[coeffs][4]  = coeff * deriv[coeffs][4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[powers[coeffs][3]] * Tn_kl_5 ;
+        force_scalar[coeffs][5]  = coeff * deriv[coeffs][5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
 
     // Accumulate forces/stresses on/from the ij pair
     force[0*CHDIM+0] += force_scalar[coeffs][0] * dr[0*CHDIM+0];
