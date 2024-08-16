@@ -1864,9 +1864,10 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         for (int i=0; i<npairs; i++)
+        {
             powers[coeffs][i] = chimes_4b_powers[quadidx][coeffs][mapped_pair_idx[i]];
             deriv[coeffs][i] = fcut[i] * Tnd_ij[ powers[coeffs][i] ] + fcutderiv[i] * Tn_ij[ powers[coeffs][i] ];
-
+        }
     }
 
     // update the deriv[coeffs] and force_scaler from 1D to 2D array and seperate their population
