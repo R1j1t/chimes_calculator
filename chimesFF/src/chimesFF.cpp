@@ -1871,9 +1871,9 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     }
 
-    // update the deriv[coeffs] and force_scaler from 1D to 2D array and seperate their population
+    // cout << "matrix populted " << endl;
     #pragma omp parallel for schedule(dynamic, 36) reduction(+:energy) private(coeff)
-    for(int coeffs=0 ; coeffs<variablecoeff; coeffs++)
+    for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
 
         double Tn_ij_ik_il =  Tn_ij[ powers[coeffs][0] ] * Tn_ik[ powers[coeffs][1] ] * Tn_il[ powers[coeffs][2] ] ;
@@ -1897,14 +1897,6 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         force_scalar[coeffs][3]  = coeff * deriv[coeffs][3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[powers[coeffs][4]] * Tn_kl_5 ;
         force_scalar[coeffs][4]  = coeff * deriv[coeffs][4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[powers[coeffs][3]] * Tn_kl_5 ;
         force_scalar[coeffs][5]  = coeff * deriv[coeffs][5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
-
-   
-    }
-
-    // cout << "matrix populted " << endl;
-    
-    for(int coeffs=0; coeffs<variablecoeff; coeffs++)
-    {
 
         // Accumulate forces/stresses on/from the ij pair
         force[0*CHDIM+0] += force_scalar[coeffs][0] * dr[0*CHDIM+0];
