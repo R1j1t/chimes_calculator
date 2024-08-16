@@ -1778,8 +1778,8 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     }
 #endif      
 
-    vector<vector<double>> &Tn = [tmp.Tn_ij, tmp.Tn_ik, tmp.Tn_il, tmp.Tn_jk, tmp.Tn_jl, tmp.Tn_kl] ;
-    vector<vector<double>> &Tnd = [tmp.Tnd_ij, tmp.Tnd_ik, tmp.Tnd_il, tmp.Tnd_jk, tmp.Tnd_jl, tmp.Tnd_kl] ;
+    vector<vector<double>> &Tn {tmp.Tn_ij, tmp.Tn_ik, tmp.Tn_il, tmp.Tn_jk, tmp.Tn_jl, tmp.Tn_kl} ;
+    vector<vector<double>> &Tnd { tmp.Tnd_ij, tmp.Tnd_ik, tmp.Tnd_il, tmp.Tnd_jk, tmp.Tnd_jl, tmp.Tnd_kl} ;
 
     vector<double> &Tn_ij   = tmp.Tn_ij ;
     vector<double> &Tn_ik   = tmp.Tn_ik ;
