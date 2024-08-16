@@ -1884,8 +1884,6 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
         energy += coeff * fcut_all * Tn_ij_ik_il * Tn_jk_jl * Tn_kl_5 ;        
 
-        #pragma omp task private(Tn_ij_ik_il, Tn_jk_jl, Tn_kl_5, coeff)
-        {
         deriv[coeffs][0] = fcut[0] * Tnd_ij[ powers[coeffs][0] ] + fcutderiv[0] * Tn_ij[ powers[coeffs][0] ];
         deriv[coeffs][1] = fcut[1] * Tnd_ik[ powers[coeffs][1] ] + fcutderiv[1] * Tn_ik[ powers[coeffs][1] ];
         deriv[coeffs][2] = fcut[2] * Tnd_il[ powers[coeffs][2] ] + fcutderiv[2] * Tn_il[ powers[coeffs][2] ];
@@ -1901,10 +1899,9 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         force_scalar[coeffs][5]  = coeff * deriv[coeffs][5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
 
    
-        }
     }
 
-    cout << "matrix populted " << endl;
+    // cout << "matrix populted " << endl;
     
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
@@ -2064,14 +2061,14 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     }
     
-    cout << "forces calculated " << endl;
+    // cout << "forces calculated " << endl;
 
-    force_scalar_in[0] = force_scalar[variablecoeff-1][0];
-    force_scalar_in[1] = force_scalar[variablecoeff-1][1];
-    force_scalar_in[2] = force_scalar[variablecoeff-1][2];
-    force_scalar_in[3] = force_scalar[variablecoeff-1][3];
-    force_scalar_in[4] = force_scalar[variablecoeff-1][4];
-    force_scalar_in[5] = force_scalar[variablecoeff-1][5];
+    // force_scalar_in[0] = force_scalar[variablecoeff-1][0];
+    // force_scalar_in[1] = force_scalar[variablecoeff-1][1];
+    // force_scalar_in[2] = force_scalar[variablecoeff-1][2];
+    // force_scalar_in[3] = force_scalar[variablecoeff-1][3];
+    // force_scalar_in[4] = force_scalar[variablecoeff-1][4];
+    // force_scalar_in[5] = force_scalar[variablecoeff-1][5];
 
     return;
 }
