@@ -1856,7 +1856,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     // quadidx and ncoeffs_4b is constant, hence we can use ncoeffs_4b_quadidx (max value)
     int powers[ncoeffs_4b_quadidx][npairs] ;
     double force_scalar[npairs] ;
-    double deriv[ncoeffs_4b_quadidx][npairs] ;
+    double deriv[variablecoeff][npairs] ;
     
     
     
