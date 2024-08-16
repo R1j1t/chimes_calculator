@@ -1779,9 +1779,6 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 #endif      
 
 
-    vector<vector<double>*> Tn = {&tmp.Tn_ij, &tmp.Tn_ik, &tmp.Tn_il, &tmp.Tn_jk, &tmp.Tn_jl, &tmp.Tn_kl};
-    vector<vector<double>*> Tnd = {&tmp.Tnd_ij, &tmp.Tnd_ik, &tmp.Tnd_il, &tmp.Tnd_jk, &tmp.Tnd_jl, &tmp.Tnd_kl};
-
     vector<double> &Tn_ij   = tmp.Tn_ij ;
     vector<double> &Tn_ik   = tmp.Tn_ik ;
     vector<double> &Tn_il   = tmp.Tn_il ;
@@ -1870,12 +1867,22 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         for (int i=0; i<npairs; i++)
         {
             powers[coeffs][i] = chimes_4b_powers[quadidx][coeffs][mapped_pair_idx[i]];
-            deriv[coeffs][i] = fcut[i] * (*Tnd[i])[ powers[coeffs][i] ] + fcutderiv[i] * (*Tn[i])[ powers[coeffs][i] ];
         }
 
     }
 
     // update the deriv[coeffs] and force_scaler from 1D to 2D array and seperate their population
+    #pragma omp parallel for
+    for(int coeffs=0; coeffs<variablecoeff; coeffs++)
+    {
+        deriv[coeffs][0] = fcut[0] * Tnd_ij[ powers[coeffs][0] ] + fcutderiv[0] * Tn_ij[ powers[coeffs][0] ];
+        deriv[coeffs][1] = fcut[1] * Tnd_ik[ powers[coeffs][1] ] + fcutderiv[1] * Tn_ik[ powers[coeffs][1] ];
+        deriv[coeffs][2] = fcut[2] * Tnd_il[ powers[coeffs][2] ] + fcutderiv[2] * Tn_il[ powers[coeffs][2] ];
+        deriv[coeffs][3] = fcut[3] * Tnd_jk[ powers[coeffs][3] ] + fcutderiv[3] * Tn_jk[ powers[coeffs][3] ];
+        deriv[coeffs][4] = fcut[4] * Tnd_jl[ powers[coeffs][4] ] + fcutderiv[4] * Tn_jl[ powers[coeffs][4] ];
+        deriv[coeffs][5] = fcut[5] * Tnd_kl[ powers[coeffs][5] ] + fcutderiv[5] * Tn_kl[ powers[coeffs][5] ];  
+
+    }
 
     
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
