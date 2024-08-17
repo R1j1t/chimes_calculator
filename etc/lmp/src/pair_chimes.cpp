@@ -48,10 +48,10 @@ using namespace LAMMPS_NS;
 /*	Functions required by LAMMPS:
 
 
-settings 	(done)		reads the input script line with arguments defined here
-coeff		(done)		set coefficients for one i,j pair type
-compute		(done)		workhorse routine that computes pairwise interactions
-init_one	(done)		perform initalization for one i,j type pair
+settings 	(todo)		reads the input script line with arguments defined here
+coeff		(todo)		set coefficients for one i,j pair type
+compute		(todo)		workhorse routine that computes pairwise interactions
+init_one	(todo)		perform initalization for one i,j type pair
 init_style 	(done)		initialization specific to this pair style
 
 write_restart			write i,j pair coeffs to restart file
@@ -64,7 +64,11 @@ single				    force and energy fo a single pairwise interaction between two atom
 
 PairCHIMES::PairCHIMES(LAMMPS *lmp) : Pair(lmp)
 {
+	// Ref: https://docs.lammps.org/Developer_write_pair.html#constructor
+	single_enable = 0;
 	restartinfo = 0;
+	one_coeff = 1;
+	manybody_flag = 1;
 
 	int me = comm->me;
 	MPI_Comm_rank(world,&me);
@@ -197,6 +201,10 @@ void PairCHIMES::allocate()
 	memory->create(cutsq,atom->ntypes+1,atom->ntypes+1,"pair:cutsq");
 }	
 
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
 void PairCHIMES::init_style()
 {
 	if (atom -> tag_enable == 0)
@@ -207,11 +215,8 @@ void PairCHIMES::init_style()
 	
 	// Set up neighbor lists... borrowing this from pair_airebo:
 	// need a full neighbor list, including neighbors of ghosts
-
-	int irequest = neighbor->request(this,instance_me);
-	neighbor->requests[irequest]->half = 0;
-	neighbor->requests[irequest]->full = 1;
-	neighbor->requests[irequest]->ghost = 1;
+	
+	neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 }
 
 double PairCHIMES::init_one(int i, int j)
