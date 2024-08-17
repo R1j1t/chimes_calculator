@@ -51,7 +51,7 @@ using namespace LAMMPS_NS;
 settings 	(todo)		reads the input script line with arguments defined here
 coeff		(todo)		set coefficients for one i,j pair type
 compute		(todo)		workhorse routine that computes pairwise interactions
-init_one	(todo)		perform initalization for one i,j type pair
+init_one	(done)		perform initalization for one i,j type pair
 init_style 	(done)		initialization specific to this pair style
 
 write_restart			write i,j pair coeffs to restart file
