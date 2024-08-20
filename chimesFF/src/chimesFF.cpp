@@ -1863,6 +1863,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     {
         for (int i=0; i<npairs; i++)
             powers[coeffs][i] = chimes_4b_powers[quadidx][coeffs][mapped_pair_idx[i]];
+            
     }
     // #pragma omp target exit data map(from:powers[:variablecoeff][:npairs])
 
