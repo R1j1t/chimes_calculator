@@ -1,5 +1,6 @@
 
-CXX   = nvc++  -fopenmp -O2 -std=c++17 --diag_suppress declared_but_not_referenced
+# CXX   = nvc++  -fopenmp -O2 -std=c++17 --diag_suppress declared_but_not_referenced
+CXX   = g++ -fopenmp -O3 -std=c++17
 DEBUG = 1
 
 CXX_LOC = $(realpath .)
