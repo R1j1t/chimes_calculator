@@ -1526,6 +1526,7 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
 }
 void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, const vector<int> & typ_idxs, vector<double> & force, vector<double> & stress, double & energy, chimes3BTmp &tmp, vector<double> & force_scalar_in)
 {
+    omp_set_num_threads(128);
     nvtxRangePushA("Compute 3B");
     // Compute 3b (input: 3 atoms or distances, corresponding types... outputs (updates) force, acceleration, energy, stress
     //
@@ -1627,6 +1628,8 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
 
     // Note parallizing below loop will not improve performance as the overhead to spun new threads is more than the computation itself
     // #pragma omp parallel for reduction(+:energy) schedule(dynamic, 140)
+    #pragma acc loop
+    #pragma data copyin(chimes_3b_powers, chimes_3b_params) copyout(powers)
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
                 
@@ -1639,7 +1642,8 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
         energy += coeff * fcut_all * Tn_ij[ powers[coeffs][0] ] * Tn_ik[ powers[coeffs][1] ] * Tn_jk[ powers[coeffs][2] ];    
 
     }
-
+    #pragma acc loop
+    #pragma data copyin(chimes_3b_powers, chimes_3b_params) copyout(force_scalar)
     for(int coeffs=0; coeffs<ncoeffs_3b[tripidx]; coeffs++)
     {
         coeff = chimes_3b_params[tripidx][coeffs];
@@ -1749,8 +1753,9 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 }
 void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, const vector<int> & typ_idxs, vector<double> & force, vector<double> & stress, double & energy, chimes4BTmp &tmp, vector<double> & force_scalar_in)
 {
+    omp_set_num_threads(128);
     nvtxRangePushA("Compute 4B");
-    omp_set_num_threads(16);
+    
     // Compute 3b (input: 3 atoms or distances, corresponding types... outputs (updates) force, acceleration, energy, stress
     //
     // Input parameters:
@@ -1864,6 +1869,8 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     //#pragma acc kernels
     //{
     #pragma acc parallel loop
+    #pragma data copyin(chimes_4b_powers[0:quadidx][0:variablecoeff][0:npairs]) \
+                 copyout(powers[0:variablecoeff][0:npairs])
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         
@@ -1878,8 +1885,10 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     // update the deriv and force_scaler from 1D to 2D array and seperate their population
 
     nvtxRangePushA("Coeff Loop 4B");
-    // #pragma acc parallel loop
+    // #pragma acc parallel loop takes a long time to spin up threads
     #pragma acc loop
+    #pragma data copyin(fcut[0:npairs], fcutderiv[0:npairs], Tn_ij[0:poly_orders[2]], Tn_ik[0:poly_orders[2]], Tn_il[0:poly_orders[2]], Tn_jk[0:poly_orders[2]], Tn_jl[0:poly_orders[2]], Tn_kl[0:poly_orders[2]], powers[0:variablecoeff][0:npairs]) \
+                 copyout(deriv[0:npairs], force_scalar[0:npairs])
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         
