@@ -45,11 +45,10 @@ echo "ChIMES files copied to LAMMPS source"
 cd build/lammps_stable_27Jun2024/
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=$PWD/../install_pm -D CMAKE_BUILD_TYPE=Release \
+cmake -DCMAKE_INSTALL_PREFIX=$PWD/../install_pm -D CMAKE_BUILD_TYPE=Debug \
             -D CMAKE_Fortran_COMPILER=ftn -D CMAKE_C_COMPILER=cc -D CMAKE_CXX_COMPILER=CC \
             -D MPI_C_COMPILER=cc -D MPI_CXX_COMPILER=CC -D LAMMPS_EXCEPTIONS=ON \
-            -D BUILD_SHARED_LIBS=ON  \ 
-            -D PKG_MANYBODY=ON -D PKG_MOLECULE=ON -D PKG_KSPACE=ON -D PKG_REPLICA=ON -D PKG_ASPHERE=ON \
+            -D BUILD_SHARED_LIBS=ON -D PKG_MANYBODY=ON -D PKG_MOLECULE=ON -D PKG_KSPACE=ON -D PKG_REPLICA=ON -D PKG_ASPHERE=ON \
             -D PKG_RIGID=ON -D PKG_MPIIO=ON \
             -D CMAKE_POSITION_INDEPENDENT_CODE=ON -D CMAKE_EXE_FLAGS="-dynamic" ../cmake
 
@@ -59,8 +58,10 @@ make -j16
 
 # Finish
 
-mkdir exe
-mv build/lammps_stable_27Jun2024/build/lmp exe
+mkdir ../../../exe
+mv ./lmp ../../../exe/
+
+cd ../../../
 
 loc=`pwd`
 echo ""
