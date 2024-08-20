@@ -1747,7 +1747,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 }
 void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, const vector<int> & typ_idxs, vector<double> & force, vector<double> & stress, double & energy, chimes4BTmp &tmp, vector<double> & force_scalar_in)
 {
-    omp_set_num_threads(16);
+    omp_set_num_threads(8);
     // Compute 3b (input: 3 atoms or distances, corresponding types... outputs (updates) force, acceleration, energy, stress
     //
     // Input parameters:
@@ -1856,36 +1856,16 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     int powers[ncoeffs_4b_quadidx][npairs] ;
     double force_scalar[npairs] ;
     
-    
-    
-    #pragma omp parallel for
+    #pragma omp target enter data map(to:mapped_pair_idx, chimes_4b_powers)
+    #pragma omp target teams
+    #pragma distribute parallel for
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         for (int i=0; i<npairs; i++)
             powers[coeffs][i] = chimes_4b_powers[quadidx][coeffs][mapped_pair_idx[i]];
-
-        double Tn_ij_ik_il =  Tn_ij[ powers[coeffs][0] ] * Tn_ik[ powers[coeffs][1] ] * Tn_il[ powers[coeffs][2] ] ;
-        double Tn_jk_jl    =  Tn_jk[ powers[coeffs][3] ] * Tn_jl[ powers[coeffs][4] ] ;
-        double Tn_kl_5     =  Tn_kl[ powers[coeffs][5] ] ;
-
-        // coeff = chimes_4b_params[quadidx][coeffs];
-
-        // deriv[0] = fcut[0] * Tnd_ij[ powers[coeffs][0] ] + fcutderiv[0] * Tn_ij[ powers[coeffs][0] ];
-        // deriv[1] = fcut[1] * Tnd_ik[ powers[coeffs][1] ] + fcutderiv[1] * Tn_ik[ powers[coeffs][1] ];
-        // deriv[2] = fcut[2] * Tnd_il[ powers[coeffs][2] ] + fcutderiv[2] * Tn_il[ powers[coeffs][2] ];
-        // deriv[3] = fcut[3] * Tnd_jk[ powers[coeffs][3] ] + fcutderiv[3] * Tn_jk[ powers[coeffs][3] ];
-        // deriv[4] = fcut[4] * Tnd_jl[ powers[coeffs][4] ] + fcutderiv[4] * Tn_jl[ powers[coeffs][4] ];
-        // deriv[5] = fcut[5] * Tnd_kl[ powers[coeffs][5] ] + fcutderiv[5] * Tn_kl[ powers[coeffs][5] ];        
-
-        // force_scalar[0]  = chimes_4b_params[quadidx][coeffs] * deriv[0] * fcut_5[0] * Tn_ik[powers[coeffs][1]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
-        // force_scalar[1]  = chimes_4b_params[quadidx][coeffs] * deriv[1] * fcut_5[1] * Tn_ij[powers[coeffs][0]]  * Tn_il[powers[coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
-        // force_scalar[2]  = chimes_4b_params[quadidx][coeffs] * deriv[2] * fcut_5[2] * Tn_ij[powers[coeffs][0]]  * Tn_ik[powers[coeffs][1]] * Tn_jk_jl * Tn_kl_5 ;
-        // force_scalar[3]  = chimes_4b_params[quadidx][coeffs] * deriv[3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[powers[coeffs][4]] * Tn_kl_5 ;
-        // force_scalar[4]  = chimes_4b_params[quadidx][coeffs] * deriv[4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[powers[coeffs][3]] * Tn_kl_5 ;
-        // force_scalar[5]  = chimes_4b_params[quadidx][coeffs] * deriv[5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
-
-
     }
+    // #pragma omp target exit data map(from:powers[:variablecoeff][:npairs])
+
 
     // update the deriv and force_scaler from 1D to 2D array and seperate their population
 
