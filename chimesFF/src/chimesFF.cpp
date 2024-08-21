@@ -1034,7 +1034,8 @@ void chimesFF::read_parameters(string paramfile)
                 	    //     chimes_4b_powers[tmp_int][i][5] << " " <<                                
                 	    //     chimes_4b_params[tmp_int][i] << endl;
                 	}
-            // #pragma acc enter data copyin(chimes_4b_powers[:quadidx][0:variablecoeff][0:npairs])
+            #pragma acc enter data copyin(this)
+            #pragma acc enter data copyin(chimes_4b_powers)
 		}
 		else
 		{
@@ -1890,9 +1891,8 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     // #pragma acc parallel loop takes a long time to spin up threads
 
     nvtxRangePushA("force_scaler population 4B");
-    #pragma data copyin(fcut[0:npairs], fcutderiv[0:npairs], Tn_ij[0:poly_orders[2]], Tn_ik[0:poly_orders[2]], Tn_il[0:poly_orders[2]], Tn_jk[0:poly_orders[2]], Tn_jl[0:poly_orders[2]], Tn_kl[0:poly_orders[2]], chimes_4b_powers[:quadidx][0:variablecoeff][0:npairs]) \
-                 copyout(force_scalar[:variablecoeff][0:npairs])
-    #pragma acc parallel loop reduction(+:energy)
+
+    #pragma acc parallel loop present(chimes_4b_powers)
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         double deriv[npairs] ;
@@ -1919,8 +1919,10 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         force_scalar[coeffs][3]  = coeff * deriv[3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[chimes_4b_powers[quadidx][coeffs][4]] * Tn_kl_5 ;
         force_scalar[coeffs][4]  = coeff * deriv[4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[chimes_4b_powers[quadidx][coeffs][3]] * Tn_kl_5 ;
         force_scalar[coeffs][5]  = coeff * deriv[5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
-
+    #pragma acc exit data delete(chimes_4b_powers)
+    #pragma acc exit data delete(this)
     }
+
     nvtxRangePop();
 
     nvtxRangePushA("Coeff Loop 4B");
