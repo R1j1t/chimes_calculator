@@ -1751,6 +1751,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         vector<double> dummy_force_scalar(6);
         compute_4B(dx, dr, typ_idxs, force, stress, energy, tmp, dummy_force_scalar);                                                               
 }
+#pragma acc routine seq
 void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, const vector<int> & typ_idxs, vector<double> & force, vector<double> & stress, double & energy, chimes4BTmp &tmp, vector<double> & force_scalar_in)
 {
     // omp_set_num_threads(128);
@@ -1868,9 +1869,9 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     nvtxRangePushA("Powers Loop 4B");
     //#pragma acc kernels
     //{
-    #pragma acc parallel loop collapse(2)
-    #pragma data copyin(chimes_4b_powers[0:quadidx][0:variablecoeff][0:npairs]) \
-                 copyout(powers[0:variablecoeff][0:npairs])
+    //#pragma acc parallel loop collapse(2)
+    //#pragma data copyin(chimes_4b_powers[0:quadidx][0:variablecoeff][0:npairs]) \
+    //             copyout(powers[0:variablecoeff][0:npairs])
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         
@@ -1886,8 +1887,8 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     nvtxRangePushA("Coeff Loop 4B");
     // #pragma acc parallel loop takes a long time to spin up threads
-    #pragma acc loop
-    #pragma data copyin(fcut[0:npairs], fcutderiv[0:npairs], Tn_ij[0:poly_orders[2]], Tn_ik[0:poly_orders[2]], Tn_il[0:poly_orders[2]], Tn_jk[0:poly_orders[2]], Tn_jl[0:poly_orders[2]], Tn_kl[0:poly_orders[2]], powers[0:variablecoeff][0:npairs]) \
+    //#pragma acc loop
+    //#pragma data copyin(fcut[0:npairs], fcutderiv[0:npairs], Tn_ij[0:poly_orders[2]], Tn_ik[0:poly_orders[2]], Tn_il[0:poly_orders[2]], Tn_jk[0:poly_orders[2]], Tn_jl[0:poly_orders[2]], Tn_kl[0:poly_orders[2]], powers[0:variablecoeff][0:npairs]) \
                  copyout(deriv[0:npairs], force_scalar[0:npairs])
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {

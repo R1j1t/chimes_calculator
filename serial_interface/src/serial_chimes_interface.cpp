@@ -1070,12 +1070,13 @@ void serial_chimes_interface::calculate(vector<double> & x_in, vector<double> & 
     ////////////////////////
     // interate over 4b's
     ////////////////////////
-
+    #pragma data copyin(neighlist_4b[0:neighlist_4b.size()],force_4b[0:4*CHDIM], stress_chimes[0:6], energy, chimes_4btmp[0:poly_orders[2]]) copyout(force[0:sys.n_replicates][0:3])
     if (poly_orders[2] > 0 )
     {
         auto start = chrono::high_resolution_clock::now();
         nvtxRangePushA("Compute 4B Total");
 
+        #pragma acc loop
         for(int i=0; i<neighlist_4b.size(); i++)
         {
             ii = neighlist_4b[i][0];
@@ -1083,31 +1084,26 @@ void serial_chimes_interface::calculate(vector<double> & x_in, vector<double> & 
             kk = neighlist_4b[i][2];
             ll = neighlist_4b[i][3];
 
-            dist_4b[0] = sys.get_dist(ii,jj,&dr_4b[0*CHDIM]);
-            dist_4b[1] = sys.get_dist(ii,kk,&dr_4b[1*CHDIM]);
-            dist_4b[2] = sys.get_dist(ii,ll,&dr_4b[2*CHDIM]);
-            dist_4b[3] = sys.get_dist(jj,kk,&dr_4b[3*CHDIM]);
-            dist_4b[4] = sys.get_dist(jj,ll,&dr_4b[4*CHDIM]);
-            dist_4b[5] = sys.get_dist(kk,ll,&dr_4b[5*CHDIM]);
+            dist_4b[0] = sys.get_dist(ii, jj, &dr_4b[0*CHDIM]);
+            dist_4b[1] = sys.get_dist(ii, kk, &dr_4b[1*CHDIM]);
+            dist_4b[2] = sys.get_dist(ii, ll, &dr_4b[2*CHDIM]);
+            dist_4b[3] = sys.get_dist(jj, kk, &dr_4b[3*CHDIM]);
+            dist_4b[4] = sys.get_dist(jj, ll, &dr_4b[4*CHDIM]);
+            dist_4b[5] = sys.get_dist(kk, ll, &dr_4b[5*CHDIM]);
 
             typ_idxs_4b[0] = sys.sys_atmtyp_indices[ii];
             typ_idxs_4b[1] = sys.sys_atmtyp_indices[jj];
             typ_idxs_4b[2] = sys.sys_atmtyp_indices[kk];
             typ_idxs_4b[3] = sys.sys_atmtyp_indices[ll];
 
-            for (int idx=0; idx<4*CHDIM; idx++)
-            {
-                force_4b[idx] = 0.0 ;
-            }
-
             compute_4B(dist_4b, dr_4b, typ_idxs_4b, force_4b, stress_chimes, energy, chimes_4btmp);
 
             for (int idx=0; idx<3; idx++)
             {
-                force[sys.sys_rep_parent[sys.sys_parent[ii]]][idx] += force_4b[0*CHDIM+idx] ;
-                force[sys.sys_rep_parent[sys.sys_parent[jj]]][idx] += force_4b[1*CHDIM+idx] ;
-                force[sys.sys_rep_parent[sys.sys_parent[kk]]][idx] += force_4b[2*CHDIM+idx] ;
-                force[sys.sys_rep_parent[sys.sys_parent[ll]]][idx] += force_4b[3*CHDIM+idx] ;
+                force[sys.sys_rep_parent[sys.sys_parent[ii]]][idx] += force_4b[0*CHDIM+idx];
+                force[sys.sys_rep_parent[sys.sys_parent[jj]]][idx] += force_4b[1*CHDIM+idx];
+                force[sys.sys_rep_parent[sys.sys_parent[kk]]][idx] += force_4b[2*CHDIM+idx];
+                force[sys.sys_rep_parent[sys.sys_parent[ll]]][idx] += force_4b[3*CHDIM+idx];
             }
         }
 
