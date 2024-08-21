@@ -4,12 +4,11 @@ main.cpp:
 chimesFF::compute_4B(std::vector<double, std::allocator<double>> const&, std::vector<double, std::allocator<double>> const&, std::vector<int, std::allocator<int>> const&, std::vector<double, std::allocator<double>>&, std::vector<double, std::allocator<double>>&, double&, chimes4BTmp&, std::vector<double, std::allocator<double>>&):
    1868, Generating implicit firstprivate(variablecoeff)
          Generating NVIDIA GPU code
-       1874, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
-       1878, #pragma acc loop seq
+       1874, #pragma acc loop gang, vector(128) collapse(2) /* blockIdx.x threadIdx.x */
+       1878,   /* blockIdx.x threadIdx.x collapsed */
    1868, Generating implicit copyin(mapped_pair_idx,this[:]) [if not already present]
          Generating implicit copyout(powers[:variablecoeff][:]) [if not already present]
-   1878, Complex loop carried dependence of this+->__b_St12_Vector_baseISt6vectorIS0_IiSaIiEESaIS2_EESaIS4_EE._M_impl._M_start+(quadidx*24)->__b_St12_Vector_baseISt6vectorIiSaIiEESaIS2_EE._M_impl._M_start+(coeffs*24)->__b_St12_Vector_baseIiSaIiEE._M_impl._M_start+(mapped_pair_idx->__b_St12_Vector_baseIiSaIiEE._M_impl._M_start+(i*4)->*4)->,powers,mapped_pair_idx->__b_St12_Vector_baseIiSaIiEE._M_impl._M_start+(i*4)-> prevents parallelization
-         Generating implicit firstprivate(quadidx)
+   1878, Generating implicit firstprivate(quadidx)
 chimesFF::dr2_3B(double const*, int, int, int, int):
    1382, Generating implicit acc routine seq
          Generating acc routine seq
@@ -101,5 +100,5 @@ __gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int>>> std::_
 _ZSt8__fill_aIPSt6vectorIiSaIiEES2_EN9__gnu_cxx11__enable_ifIXntsrSt11__is_scalarIT0_E7__valueEvE6__typeET_SB_RKS7_:
       7, include "vector"
           64, include "stl_vector.h"
-/usr/bin/ld: warning: /tmp/pgcudafatEu-LfAMUlDZRj.o: missing .note.GNU-stack section implies executable stack
+/usr/bin/ld: warning: /tmp/pgcudafatiWoOy54XBSQR.o: missing .note.GNU-stack section implies executable stack
 /usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker

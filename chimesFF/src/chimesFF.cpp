@@ -1868,7 +1868,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     nvtxRangePushA("Powers Loop 4B");
     //#pragma acc kernels
     //{
-    #pragma acc parallel loop
+    #pragma acc parallel loop collapse(2)
     #pragma data copyin(chimes_4b_powers[0:quadidx][0:variablecoeff][0:npairs]) \
                  copyout(powers[0:variablecoeff][0:npairs])
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
