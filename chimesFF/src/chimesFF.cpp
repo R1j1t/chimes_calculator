@@ -1034,6 +1034,7 @@ void chimesFF::read_parameters(string paramfile)
                 	    //     chimes_4b_powers[tmp_int][i][5] << " " <<                                
                 	    //     chimes_4b_params[tmp_int][i] << endl;
                 	}
+
             #pragma acc enter data copyin(this)
             #pragma acc enter data copyin(chimes_4b_powers)
 		}
@@ -1891,7 +1892,6 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
     // #pragma acc parallel loop takes a long time to spin up threads
 
     nvtxRangePushA("force_scaler population 4B");
-
     #pragma acc parallel loop present(chimes_4b_powers)
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
@@ -1911,7 +1911,6 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         deriv[3] = fcut[3] * Tnd_jk[ chimes_4b_powers[quadidx][coeffs][3] ] + fcutderiv[3] * Tn_jk[ chimes_4b_powers[quadidx][coeffs][3] ];
         deriv[4] = fcut[4] * Tnd_jl[ chimes_4b_powers[quadidx][coeffs][4] ] + fcutderiv[4] * Tn_jl[ chimes_4b_powers[quadidx][coeffs][4] ];
         deriv[5] = fcut[5] * Tnd_kl[ chimes_4b_powers[quadidx][coeffs][5] ] + fcutderiv[5] * Tn_kl[ chimes_4b_powers[quadidx][coeffs][5] ];        
-
         
         force_scalar[coeffs][0]  = coeff * deriv[0] * fcut_5[0] * Tn_ik[chimes_4b_powers[quadidx][coeffs][1]]  * Tn_il[chimes_4b_powers[quadidx][coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
         force_scalar[coeffs][1]  = coeff * deriv[1] * fcut_5[1] * Tn_ij[chimes_4b_powers[quadidx][coeffs][0]]  * Tn_il[chimes_4b_powers[quadidx][coeffs][2]] * Tn_jk_jl * Tn_kl_5 ;
@@ -1919,8 +1918,9 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
         force_scalar[coeffs][3]  = coeff * deriv[3] * fcut_5[3] * Tn_ij_ik_il  * Tn_jl[chimes_4b_powers[quadidx][coeffs][4]] * Tn_kl_5 ;
         force_scalar[coeffs][4]  = coeff * deriv[4] * fcut_5[4] * Tn_ij_ik_il  * Tn_jk[chimes_4b_powers[quadidx][coeffs][3]] * Tn_kl_5 ;
         force_scalar[coeffs][5]  = coeff * deriv[5] * fcut_5[5] * Tn_ij_ik_il * Tn_jk_jl ;
-    #pragma acc exit data delete(chimes_4b_powers)
-    #pragma acc exit data delete(this)
+
+      #pragma acc exit data delete(chimes_4b_powers)
+      #pragma acc exit data delete(this)
     }
 
     nvtxRangePop();
