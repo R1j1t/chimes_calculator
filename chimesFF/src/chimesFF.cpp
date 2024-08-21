@@ -1526,7 +1526,7 @@ void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, 
 }
 void chimesFF::compute_3B(const vector<double> & dx, const vector<double> & dr, const vector<int> & typ_idxs, vector<double> & force, vector<double> & stress, double & energy, chimes3BTmp &tmp, vector<double> & force_scalar_in)
 {
-    omp_set_num_threads(128);
+    // omp_set_num_threads(128);
     nvtxRangePushA("Compute 3B");
     // Compute 3b (input: 3 atoms or distances, corresponding types... outputs (updates) force, acceleration, energy, stress
     //
@@ -1753,7 +1753,7 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 }
 void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, const vector<int> & typ_idxs, vector<double> & force, vector<double> & stress, double & energy, chimes4BTmp &tmp, vector<double> & force_scalar_in)
 {
-    omp_set_num_threads(128);
+    // omp_set_num_threads(128);
     nvtxRangePushA("Compute 4B");
     
     // Compute 3b (input: 3 atoms or distances, corresponding types... outputs (updates) force, acceleration, energy, stress
