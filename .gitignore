@@ -2,3 +2,4 @@
 /serial_interface/examples/cpp/debug.dat
 /serial_interface/examples/cpp/test.out
 .vscode/
+build/
