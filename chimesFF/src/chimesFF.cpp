@@ -1927,26 +1927,48 @@ void chimesFF::compute_4B(const vector<double> & dx, const vector<double> & dr, 
 
     nvtxRangePushA("Coeff Loop 4B");
     #pragma data copyin(force_scalar[0:variablecoeff][0:npairs])
-    #pragma acc loop 
+    
     for(int coeffs=0; coeffs<variablecoeff; coeffs++)
     {
         
         // Accumulate forces/stresses on/from the ij pair
-        force[0*CHDIM+0] += force_scalar[coeffs][0] * dr[0*CHDIM+0];
-        force[0*CHDIM+1] += force_scalar[coeffs][0] * dr[0*CHDIM+1];
-        force[0*CHDIM+2] += force_scalar[coeffs][0] * dr[0*CHDIM+2];
+        #pragma acc parallel loop present(force_scalar)
+        for(int i=0; i<3; i++)
+        {
+            // force[0*CHDIM+0] += force_scalar[coeffs][0] * dr[0*CHDIM+0];
+            // force[0*CHDIM+1] += force_scalar[coeffs][0] * dr[0*CHDIM+1];
+            // force[0*CHDIM+2] += force_scalar[coeffs][0] * dr[0*CHDIM+2];
 
-        force[1*CHDIM+0] -= force_scalar[coeffs][0] * dr[0*CHDIM+0];
-        force[1*CHDIM+1] -= force_scalar[coeffs][0] * dr[0*CHDIM+1];
-        force[1*CHDIM+2] -= force_scalar[coeffs][0] * dr[0*CHDIM+2];   
+            force[0*CHDIM+i] += force_scalar[coeffs][0] * dr[0*CHDIM+i];
+        }
 
-#ifdef USE_DISTANCE_TENSOR      
-        stress[0] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,0); // xx tensor component
-        stress[1] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,1); // xy tensor component
-        stress[2] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,2); // xz tensor component
-        stress[3] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,1,0,1); // yy tensor component
-        stress[4] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,1,0,2); // yz tensor component
-        stress[5] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,2,0,2); // zz tensor component
+        #pragma acc parallel loop present(force_scalar)
+        for (int i=0; i<3; i++)
+        {
+            // force[1*CHDIM+0] -= force_scalar[coeffs][0] * dr[0*CHDIM+0];
+            // force[1*CHDIM+1] -= force_scalar[coeffs][0] * dr[0*CHDIM+1];
+            // force[1*CHDIM+2] -= force_scalar[coeffs][0] * dr[0*CHDIM+2];   
+
+            force[1*CHDIM+i] -= force_scalar[coeffs][0] * dr[0*CHDIM+i];
+        }
+
+
+#ifdef USE_DISTANCE_TENSOR   
+
+        #pragma acc parallel loop present(force_scalar) collapse(2)
+        int index = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = i; j < 3; j++) {
+                // stress[0] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,0); // xx tensor component
+                // stress[1] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,1); // xy tensor component
+                // stress[2] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,0,0,2); // xz tensor component
+                // stress[3] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,1,0,1); // yy tensor component
+                // stress[4] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,1,0,2); // yz tensor component
+                // stress[5] -= force_scalar[coeffs][0]  * dr2_4B(dr2,0,2,0,2); // zz tensor component
+                stress[index] -= force_scalar[coeffs][0] * dr2_4B(dr2, 0, i, 0, j);
+                index++;
+            }
+        }
 #else
         stress[0] -= force_scalar[coeffs][0]  * dr[0*CHDIM+0] * dr[0*CHDIM+0]; // xx tensor component
         stress[1] -= force_scalar[coeffs][0]  * dr[0*CHDIM+0] * dr[0*CHDIM+1]; // xy tensor component
