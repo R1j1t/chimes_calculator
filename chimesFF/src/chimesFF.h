@@ -253,7 +253,7 @@ private:
     vector<int> ncoeffs_4b; // [nquads]
     // vector<vector<vector<int>>> chimes_4b_powers;    // [nquads][nparams][constit. pair]
     int chimes_4b_powers[6][3500][6];                // [nquads][nparams][constit. pair]
-    vector<vector<double>> chimes_4b_params;         // [nquads][nparams]
+    int chimes_4b_params[6][3500];         // [nquads][nparams]
     vector<vector<vector<double>>> chimes_4b_cutoff; // [nquads][2][constit. pair] inner and outer cutoff for pair 1
 
     // Tools for compute functions
