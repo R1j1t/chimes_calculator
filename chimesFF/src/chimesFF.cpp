@@ -951,7 +951,7 @@ void chimesFF::read_parameters(string paramfile)
 
                 ncoeffs_4b.resize(nquads);
                 // chimes_4b_powers.resize(nquads);
-                chimes_4b_params.resize(nquads);
+                // chimes_4b_params.resize(nquads);
                 chimes_4b_cutoff.resize(nquads);
 
                 quad_params_atm_chems.resize(nquads);
@@ -1006,7 +1006,8 @@ void chimesFF::read_parameters(string paramfile)
                         chimes_4b_powers[tmp_int][i][4] = stoi(tmp_str_items[5]);
                         chimes_4b_powers[tmp_int][i][5] = stoi(tmp_str_items[6]);
 
-                        chimes_4b_params[tmp_int].push_back(stod(tmp_str_items[9]));
+                        // chimes_4b_params[tmp_int].push_back(stod(tmp_str_items[9]));
+                        chimes_4b_params[tmp_int][i] = stod(tmp_str_items[9]);
 
                         // if (rank == 0)
                         // 	cout << "chimesFF: " << "\t" <<
@@ -1018,7 +1019,9 @@ void chimesFF::read_parameters(string paramfile)
                         //     chimes_4b_powers[tmp_int][i][5] << " " <<
                         //     chimes_4b_params[tmp_int][i] << endl;
                     }
-                    // #pragma acc enter data copyin(chimes_4b_powers[:quadidx][0:variablecoeff][0:npairs])
+                    #pragma acc enter data copyin(this)
+                    #pragma acc enter data copyin(chimes_4b_powers, chimes_4b_params)
+
                 }
                 else
                 {
@@ -1846,55 +1849,86 @@ void chimesFF::compute_4B(const vector<double> &dx, const vector<double> &dr, co
     // The two loops below can be combined together but maybe having them separate and with parallel regions it is better?
 
     nvtxRangePushA("Tn_2D population 4B");
-    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+    // double Tn_ij_array = Tn_ij.data()
+    #pragma acc data create(Tn_2D)
     {
-        Tn_2D[coeffs][0] = Tn_ij[chimes_4b_powers[quadidx][coeffs][0]];
-        Tn_2D[coeffs][1] = Tn_ik[chimes_4b_powers[quadidx][coeffs][1]];
-        Tn_2D[coeffs][2] = Tn_il[chimes_4b_powers[quadidx][coeffs][2]];
-        Tn_2D[coeffs][3] = Tn_jk[chimes_4b_powers[quadidx][coeffs][3]];
-        Tn_2D[coeffs][4] = Tn_jl[chimes_4b_powers[quadidx][coeffs][4]];
-        Tn_2D[coeffs][5] = Tn_kl[chimes_4b_powers[quadidx][coeffs][5]];
-    }
-    nvtxRangePop();
-
-    nvtxRangePushA("Tnd_2D population 4B");
-    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
-    {
-        Tnd_2D[coeffs][0] = Tnd_ij[chimes_4b_powers[quadidx][coeffs][0]];
-        Tnd_2D[coeffs][1] = Tnd_ik[chimes_4b_powers[quadidx][coeffs][1]];
-        Tnd_2D[coeffs][2] = Tnd_il[chimes_4b_powers[quadidx][coeffs][2]];
-        Tnd_2D[coeffs][3] = Tnd_jk[chimes_4b_powers[quadidx][coeffs][3]];
-        Tnd_2D[coeffs][4] = Tnd_jl[chimes_4b_powers[quadidx][coeffs][4]];
-        Tnd_2D[coeffs][5] = Tnd_kl[chimes_4b_powers[quadidx][coeffs][5]];
-    }
-    nvtxRangePop();
-
-    nvtxRangePushA("Tn_all population 4B");
-    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
-    {
-        Tn_all[coeffs] = 1.0;
-        for (int i = 0; i < npairs; i++)
-            Tn_all[coeffs] *= Tn_2D[coeffs][i];
-    }
-    nvtxRangePop();
-
-    nvtxRangePushA("Energy accumulation 4B");
-    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
-    {
-        energy += chimes_4b_params[quadidx][coeffs] * fcut_all * Tn_all[coeffs];
-    }
-    nvtxRangePop();
-
-    nvtxRangePushA("Force Scalar population 4B");
-    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
-    {
-        for (int i = 0; i < npairs; i++)
+        #pragma acc parallel loop present(chimes_4b_powers) 
+        for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
         {
-            double deriv = fcut[i] * Tnd_2D[coeffs][i] + fcutderiv[i] * Tn_2D[coeffs][i];
-            force_scalar[coeffs][i] = chimes_4b_params[quadidx][coeffs] * deriv * fcut_5[i] * Tn_all[coeffs] / Tn_2D[coeffs][i];
+            Tn_2D[coeffs][0] = Tn_ij[chimes_4b_powers[quadidx][coeffs][0]];
+            Tn_2D[coeffs][1] = Tn_ik[chimes_4b_powers[quadidx][coeffs][1]];
+            Tn_2D[coeffs][2] = Tn_il[chimes_4b_powers[quadidx][coeffs][2]];
+            Tn_2D[coeffs][3] = Tn_jk[chimes_4b_powers[quadidx][coeffs][3]];
+            Tn_2D[coeffs][4] = Tn_jl[chimes_4b_powers[quadidx][coeffs][4]];
+            Tn_2D[coeffs][5] = Tn_kl[chimes_4b_powers[quadidx][coeffs][5]];
         }
+        nvtxRangePop();
+
+        nvtxRangePushA("Tnd_2D population 4B");
+        #pragma acc data create(Tnd_2D)
+        {
+            // #pragma acc data copyout(Tnd_2D)
+            // #pragma acc parallel loop present(chimes_4b_powers) 
+            for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+            {
+                Tnd_2D[coeffs][0] = Tnd_ij[chimes_4b_powers[quadidx][coeffs][0]];
+                Tnd_2D[coeffs][1] = Tnd_ik[chimes_4b_powers[quadidx][coeffs][1]];
+                Tnd_2D[coeffs][2] = Tnd_il[chimes_4b_powers[quadidx][coeffs][2]];
+                Tnd_2D[coeffs][3] = Tnd_jk[chimes_4b_powers[quadidx][coeffs][3]];
+                Tnd_2D[coeffs][4] = Tnd_jl[chimes_4b_powers[quadidx][coeffs][4]];
+                Tnd_2D[coeffs][5] = Tnd_kl[chimes_4b_powers[quadidx][coeffs][5]];
+            }
+            nvtxRangePop();
+
+            // #pragma acc enter data copyin(this)
+            // #pragma acc enter data copyin(Tnd_2D, Tn_2D)
+
+            nvtxRangePushA("Tn_all population 4B");
+            #pragma acc data create(Tn_all)
+            {
+            #pragma acc parallel loop present(Tn_2D)
+            for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+            {
+                Tn_all[coeffs] = 1.0;
+                for (int i = 0; i < npairs; i++)
+                    Tn_all[coeffs] *= Tn_2D[coeffs][i];
+            }
+            nvtxRangePop();
+
+        
+        // #pragma acc exit data delete(Tn_2D)
+        // #pragma acc exit data delete(this)
+
+        // #pragma acc enter data copyin(this)
+        // #pragma acc enter data copyin(Tn_all)
+
+        nvtxRangePushA("Energy accumulation 4B");
+        #pragma acc parallel loop present(chimes_4b_params, Tn_all) reduction(+: energy)
+        for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+        {
+            energy += chimes_4b_params[quadidx][coeffs] * fcut_all * Tn_all[coeffs];
+        }
+        nvtxRangePop();
+
+        nvtxRangePushA("Force Scalar population 4B");
+        #pragma acc parallel loop present(chimes_4b_params, Tn_all, Tn_2D, Tnd_2D) reduction(+: energy)
+        for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+        {
+            for (int i = 0; i < npairs; i++)
+            {
+                double deriv = fcut[i] * Tnd_2D[coeffs][i] + fcutderiv[i] * Tn_2D[coeffs][i];
+                force_scalar[coeffs][i] = chimes_4b_params[quadidx][coeffs] * deriv * fcut_5[i] * Tn_all[coeffs] / Tn_2D[coeffs][i];
+            }
+        }
+        nvtxRangePop();
+
+            }
+        }
+
     }
-    nvtxRangePop();
+
+    // #pragma acc enter data copyin(this)
+    // #pragma acc enter data copyin(force_scalar)
 
     nvtxRangePushA("Force accumulation 4B");
     for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
