@@ -963,7 +963,7 @@ void chimesFF::read_parameters(string paramfile)
                                 
                 ncoeffs_4b      .resize(nquads);                                 
                 // chimes_4b_powers.resize(nquads);                                              
-                chimes_4b_params.resize(nquads);                       
+                // chimes_4b_params.resize(nquads);                       
                 chimes_4b_cutoff.resize(nquads);                            
                 
                 quad_params_atm_chems.resize(nquads);                
@@ -1022,7 +1022,7 @@ void chimesFF::read_parameters(string paramfile)
                     
 	                    // chimes_4b_powers[tmp_int][i] = &tmp_int_vec;                 
                     
-	                    chimes_4b_params[tmp_int].push_back(stod(tmp_str_items[9]));
+                        chimes_4b_params[tmp_int].push_back(stod(tmp_str_items[9]));
                 
 	                    // if (rank == 0)
                         // 	cout << "chimesFF: " << "\t" << 
