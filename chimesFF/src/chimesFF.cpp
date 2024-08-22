@@ -636,7 +636,7 @@ void chimesFF::read_parameters(string paramfile)
                 ntrips = stoi(tmp_str_items[3]);
 
                 ncoeffs_3b.resize(ntrips);
-                chimes_3b_powers.resize(ntrips);
+                // chimes_3b_powers.resize(ntrips);
                 chimes_3b_params.resize(ntrips);
                 chimes_3b_cutoff.resize(ntrips);
 
@@ -646,7 +646,7 @@ void chimesFF::read_parameters(string paramfile)
 
             if (line.find("TRIPLETTYPE PARAMS:") != string::npos)
             {
-                vector<int> tmp_int_vec(3);
+                // vector<int> tmp_int_vec(3);
 
                 line = get_next_line(param_file);
 
@@ -683,11 +683,16 @@ void chimesFF::read_parameters(string paramfile)
                         line = get_next_line(param_file);
                         split_line(line, tmp_str_items);
 
-                        tmp_int_vec[0] = stoi(tmp_str_items[1]);
-                        tmp_int_vec[1] = stoi(tmp_str_items[2]);
-                        tmp_int_vec[2] = stoi(tmp_str_items[3]);
+                        // tmp_int_vec[0] = stoi(tmp_str_items[1]);
+                        // tmp_int_vec[1] = stoi(tmp_str_items[2]);
+                        // tmp_int_vec[2] = stoi(tmp_str_items[3]);
 
-                        chimes_3b_powers[tmp_int].push_back(tmp_int_vec);
+                        // chimes_3b_powers[tmp_int].push_back(tmp_int_vec);
+
+                        chimes_3b_powers[tmp_int][i][0] = stoi(tmp_str_items[1]);
+                        chimes_3b_powers[tmp_int][i][1] = stoi(tmp_str_items[2]);
+                        chimes_3b_powers[tmp_int][i][2] = stoi(tmp_str_items[3]);
+
                         chimes_3b_params[tmp_int].push_back(stod(tmp_str_items[6]));
 
                         // if (rank == 0)
@@ -1503,40 +1508,25 @@ void chimesFF::compute_3B(const vector<double> &dx, const vector<double> &dr, co
 }
 void chimesFF::compute_3B(const vector<double> &dx, const vector<double> &dr, const vector<int> &typ_idxs, vector<double> &force, vector<double> &stress, double &energy, chimes3BTmp &tmp, vector<double> &force_scalar_in)
 {
+    /*
+    Compute 3b (input: 3 atoms or distances, corresponding types... outputs (updates) force, acceleration, energy, stress
+
+    Input parameters:
+
+    dx_ij: Scalar (pair distance)
+    dr_ij: 1d-Array (pair distance: [x, y, and z-component])
+    Force: [natoms in interaction set][x,y, and z-component] *note
+    Stress [sxx, sxy, sxz, syy, syz, szz]
+    Energy: Scalar; energy for interaction set
+    Tmp: Temporary storage for 3-body interactions.
+
+    Assumes atom indices start from zero
+    Assumes distances are atom_2 - atom_1
+
+    *note: force and dr are packed vectors of coordinates.
+    */
+
     nvtxRangePushA("Compute 3B");
-    // Compute 3b (input: 3 atoms or distances, corresponding types... outputs (updates) force, acceleration, energy, stress
-    //
-    // Input parameters:
-    //
-    // dx_ij: Scalar (pair distance)
-    // dr_ij: 1d-Array (pair distance: [x, y, and z-component])
-    // Force: [natoms in interaction set][x,y, and z-component] *note
-    // Stress [sxx, sxy, sxz, syy, syz, szz]
-    // Energy: Scalar; energy for interaction set
-    // Tmp: Temporary storage for 3-body interactions.
-
-    // Assumes atom indices start from zero
-    // Assumes distances are atom_2 - atom_1
-    //
-    // *note: force and dr are packed vectors of coordinates.
-
-    const int natoms = 3;                         // Number of atoms in an interaction set
-    const int npairs = natoms * (natoms - 1) / 2; // Number of pairs in an interaction set
-
-    // tmp.resize(poly_orders[1]) ;
-
-    vector<double> &Tn_ij = tmp.Tn_ij;
-    vector<double> &Tn_ik = tmp.Tn_ik;
-    vector<double> &Tn_jk = tmp.Tn_jk; // The Chebyshev polymonials
-    vector<double> &Tnd_ij = tmp.Tnd_ij;
-    vector<double> &Tnd_ik = tmp.Tnd_ik;
-    vector<double> &Tnd_jk = tmp.Tnd_jk; // The Chebyshev polymonial derivatives
-
-    // Avoid allocating std::vector quantities.  Heap memory allocation is slow on the GPU.
-    // fixed-length C arrays are allocated on the stack.
-    double fcut[npairs];
-    double fcutderiv[npairs];
-    double deriv[npairs];
 
 #if DEBUG == 1
     if (dr.size() != 9)
@@ -1546,23 +1536,42 @@ void chimesFF::compute_3B(const vector<double> &dx, const vector<double> &dr, co
     }
 #endif
 
-    int type_idx = typ_idxs[0] * natmtyps * natmtyps + typ_idxs[1] * natmtyps + typ_idxs[2];
-    int tripidx = atom_int_trip_map[type_idx];
+    const int natoms = 3;                         // Number of atoms in an interaction set
+    const int npairs = natoms * (natoms - 1) / 2; // Number of pairs in an interaction set
+
+    // The Chebyshev polymonials
+    vector<double> &Tn_ij = tmp.Tn_ij;
+    vector<double> &Tn_ik = tmp.Tn_ik;
+    vector<double> &Tn_jk = tmp.Tn_jk;
+
+    // The Chebyshev polymonial derivatives
+    vector<double> &Tnd_ij = tmp.Tnd_ij;
+    vector<double> &Tnd_ik = tmp.Tnd_ik;
+    vector<double> &Tnd_jk = tmp.Tnd_jk;
+
+    int idx = typ_idxs[0] * natmtyps * natmtyps + typ_idxs[1] * natmtyps + typ_idxs[2];
+
+    int tripidx = atom_int_trip_map[idx];
 
     if (tripidx < 0) // Skipping an excluded interaction
         return;
 
+    vector<int> &mapped_pair_idx = pair_int_trip_map[idx];
+
     // Check whether cutoffs are within allowed ranges
-    vector<int> &mapped_pair_idx = pair_int_trip_map[type_idx];
+    for (int i = 0; i < npairs; i++)
+        if (dx[0] >= chimes_3b_cutoff[tripidx][1][mapped_pair_idx[0]]) // ij
+            return;
 
-    if (dx[0] >= chimes_3b_cutoff[tripidx][1][mapped_pair_idx[0]]) // ij
-        return;
-    if (dx[1] >= chimes_3b_cutoff[tripidx][1][mapped_pair_idx[1]]) // ik
-        return;
-    if (dx[2] >= chimes_3b_cutoff[tripidx][1][mapped_pair_idx[2]]) // jk
-        return;
+    // At this point, all distances are within allowed ranges. We can now proceed to the force/stress/energy calculation
 
-        // At this point, all distances are within allowed ranges. We can now proceed to the force/stress/energy calculation
+    // Set up the polynomials
+
+    nvtxRangePushA("set cheby_poly 3B");
+    set_cheby_polys(Tn_ij, Tnd_ij, dx[0], atom_int_pair_map[typ_idxs[0] * natmtyps + typ_idxs[1]], chimes_3b_cutoff[tripidx][0][mapped_pair_idx[0]], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[0]], 1);
+    set_cheby_polys(Tn_ik, Tnd_ik, dx[1], atom_int_pair_map[typ_idxs[0] * natmtyps + typ_idxs[2]], chimes_3b_cutoff[tripidx][0][mapped_pair_idx[1]], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[1]], 1);
+    set_cheby_polys(Tn_jk, Tnd_jk, dx[2], atom_int_pair_map[typ_idxs[1] * natmtyps + typ_idxs[2]], chimes_3b_cutoff[tripidx][0][mapped_pair_idx[2]], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[2]], 1);
+    nvtxRangePop();
 
 #ifdef USE_DISTANCE_TENSOR
     // Tensor product of displacement vectors.
@@ -1570,149 +1579,150 @@ void chimesFF::compute_3B(const vector<double> &dx, const vector<double> &dr, co
     init_distance_tensor(dr2, dr, npairs);
 #endif
 
-    // Set up the polynomials
-
-    set_cheby_polys(Tn_ij, Tnd_ij, dx[0], atom_int_pair_map[typ_idxs[0] * natmtyps + typ_idxs[1]], chimes_3b_cutoff[tripidx][0][mapped_pair_idx[0]], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[0]], 1);
-    set_cheby_polys(Tn_ik, Tnd_ik, dx[1], atom_int_pair_map[typ_idxs[0] * natmtyps + typ_idxs[2]], chimes_3b_cutoff[tripidx][0][mapped_pair_idx[1]], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[1]], 1);
-    set_cheby_polys(Tn_jk, Tnd_jk, dx[2], atom_int_pair_map[typ_idxs[1] * natmtyps + typ_idxs[2]], chimes_3b_cutoff[tripidx][0][mapped_pair_idx[2]], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[2]], 1);
+    double fcut[npairs];
+    double fcutderiv[npairs];
 
     // Set up the smoothing functions
+    for (int i = 0; i < npairs; i++)
+        get_fcut(dx[i], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[i]], fcut[i], fcutderiv[i]);
 
-    get_fcut(dx[0], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[0]], fcut[0], fcutderiv[0]);
-    get_fcut(dx[1], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[1]], fcut[1], fcutderiv[1]);
-    get_fcut(dx[2], chimes_3b_cutoff[tripidx][1][mapped_pair_idx[2]], fcut[2], fcutderiv[2]);
+    // Product of all 3 fcuts.
     double fcut_all = fcut[0] * fcut[1] * fcut[2];
 
     // Product of 2 fcuts divided by dx. Index i = product of all fcuts except i.
     double fcut_2[npairs];
-    fcut_2[0] = fcut[1] * fcut[2] / dx[0];
-    fcut_2[1] = fcut[0] * fcut[2] / dx[1];
-    fcut_2[2] = fcut[0] * fcut[1] / dx[2];
+    for (int i = 0; i < npairs; i++)
+    {
+        fcut_2[i] = 1.0;
+        for (int j = 0; j < npairs; j++)
+            if (j != i)
+                fcut_2[i] *= fcut[j];
+        fcut_2[i] /= dx[i];
+    }
 
     // Start the force/stress/energy calculation
-    double coeff;
 
-    // Changed powers to a 2D array to prevent re-initialization thus, enable parallelization
-    int ncoeffs_3b_tripidx = *max_element(ncoeffs_3b.begin(), ncoeffs_3b.end());
     int variablecoeff = ncoeffs_3b[tripidx];
-    int powers[ncoeffs_3b_tripidx][npairs];
 
-    double force_scalar[npairs];
+    double Tn_2D[variablecoeff][npairs];  // Cast the Tn_ij, Tn_ik, Tn_jk into 2D arrays
+    double Tnd_2D[variablecoeff][npairs]; // Cast the Tnd_ij, Tnd_ik, Tnd_jk into 2D arrays
+    double Tn_all[variablecoeff];         // Product of Tn_2D[coeffs][i] for all i = 0, ..., npairs - 1
 
-    // Note parallizing below loop will not improve performance as the overhead to spun new threads is more than the computation itself
-    // #pragma omp parallel for reduction(+:energy) schedule(dynamic, 140)
-    // #pragma acc loop
-    // #pragma data copyin(chimes_3b_powers, chimes_3b_params) copyout(powers)
+    double force_scalar[variablecoeff][npairs];
+
+    // The two loops below can be combined together but maybe having them separate and with parallel regions it is better?
+
+    nvtxRangePushA("Tn_2D population 3B");
     for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
     {
-
-        powers[coeffs][0] = chimes_3b_powers[tripidx][coeffs][mapped_pair_idx[0]];
-        powers[coeffs][1] = chimes_3b_powers[tripidx][coeffs][mapped_pair_idx[1]];
-        powers[coeffs][2] = chimes_3b_powers[tripidx][coeffs][mapped_pair_idx[2]];
-
-        coeff = chimes_3b_params[tripidx][coeffs];
-
-        energy += coeff * fcut_all * Tn_ij[powers[coeffs][0]] * Tn_ik[powers[coeffs][1]] * Tn_jk[powers[coeffs][2]];
+        Tn_2D[coeffs][0] = Tn_ij[chimes_3b_powers[tripidx][coeffs][0]];
+        Tn_2D[coeffs][1] = Tn_ik[chimes_3b_powers[tripidx][coeffs][1]];
+        Tn_2D[coeffs][2] = Tn_jk[chimes_3b_powers[tripidx][coeffs][2]];
     }
-    // #pragma acc loop
-    // #pragma data copyin(chimes_3b_powers, chimes_3b_params) copyout(force_scalar)
-    for (int coeffs = 0; coeffs < ncoeffs_3b[tripidx]; coeffs++)
+    nvtxRangePop();
+
+    nvtxRangePushA("Tnd_2D population 3B");
+    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
     {
+        Tnd_2D[coeffs][0] = Tnd_ij[chimes_3b_powers[tripidx][coeffs][0]];
+        Tnd_2D[coeffs][1] = Tnd_ik[chimes_3b_powers[tripidx][coeffs][1]];
+        Tnd_2D[coeffs][2] = Tnd_jk[chimes_3b_powers[tripidx][coeffs][2]];
+    }
+    nvtxRangePop();
 
-        deriv[0] = fcut[0] * Tnd_ij[powers[coeffs][0]] + fcutderiv[0] * Tn_ij[powers[coeffs][0]];
-        deriv[1] = fcut[1] * Tnd_ik[powers[coeffs][1]] + fcutderiv[1] * Tn_ik[powers[coeffs][1]];
-        deriv[2] = fcut[2] * Tnd_jk[powers[coeffs][2]] + fcutderiv[2] * Tn_jk[powers[coeffs][2]];
+    nvtxRangePushA("Tn_all population 3B");
+    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+    {
+        Tn_all[coeffs] = 1.0;
+        for (int i = 0; i < npairs; i++)
+            Tn_all[coeffs] *= Tn_2D[coeffs][i];
+    }
+    nvtxRangePop();
 
-        coeff = chimes_3b_params[tripidx][coeffs];
+    nvtxRangePushA("Energy accumulation 3B");
+    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+    {
+        energy += chimes_3b_params[tripidx][coeffs] * fcut_all * Tn_all[coeffs];
+    }
+    nvtxRangePop();
 
-        force_scalar[0] = coeff * deriv[0] * fcut_2[0] * Tn_ik[powers[coeffs][1]] * Tn_jk[powers[coeffs][2]];
-        force_scalar[1] = coeff * deriv[1] * fcut_2[1] * Tn_ij[powers[coeffs][0]] * Tn_jk[powers[coeffs][2]];
-        force_scalar[2] = coeff * deriv[2] * fcut_2[2] * Tn_ij[powers[coeffs][0]] * Tn_ik[powers[coeffs][1]];
+    nvtxRangePushA("Force Scalar population 3B");
+    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+    {
+        for (int i = 0; i < npairs; i++)
+        {
+            double deriv = fcut[i] * Tnd_2D[coeffs][i] + fcutderiv[i] * Tn_2D[coeffs][i];
+            force_scalar[coeffs][i] = chimes_3b_params[tripidx][coeffs] * deriv * fcut_2[i] * Tn_all[coeffs] / Tn_2D[coeffs][i];
+        }
+    }
+    nvtxRangePop();
 
-        // Accumulate forces/stresses on/from the ij pair
+    nvtxRangePushA("Force accumulation 3B");
+    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+    {
+        int n = 0;
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = i; j < 2; j++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    force[i * CHDIM + k] += force_scalar[coeffs][n] * dr[n * CHDIM + k];
+                    force[(j + 1) * CHDIM + k] -= force_scalar[coeffs][n] * dr[n * CHDIM + k];
+                }
+                ++n;
+            }
+        }
+    }
+    nvtxRangePop();
 
-        force[0 * CHDIM + 0] += force_scalar[0] * dr[0 * CHDIM + 0];
-        force[0 * CHDIM + 1] += force_scalar[0] * dr[0 * CHDIM + 1];
-        force[0 * CHDIM + 2] += force_scalar[0] * dr[0 * CHDIM + 2];
-
-        force[1 * CHDIM + 0] -= force_scalar[0] * dr[0 * CHDIM + 0];
-        force[1 * CHDIM + 1] -= force_scalar[0] * dr[0 * CHDIM + 1];
-        force[1 * CHDIM + 2] -= force_scalar[0] * dr[0 * CHDIM + 2];
-
-        // dr2_3B looks like a function call, but the optimizer should remove it entirely.
+    nvtxRangePushA("Stress accumulation 3B");
 #ifdef USE_DISTANCE_TENSOR
-        // New stress code.
-        stress[0] -= force_scalar[0] * dr2_3B(dr2, 0, 0, 0, 0); // xx tensor component
-        stress[1] -= force_scalar[0] * dr2_3B(dr2, 0, 0, 0, 1); // xy tensor component
-        stress[2] -= force_scalar[0] * dr2_3B(dr2, 0, 0, 0, 2); // xz tensor component
-        stress[3] -= force_scalar[0] * dr2_3B(dr2, 0, 1, 0, 1); // yy tensor component
-        stress[4] -= force_scalar[0] * dr2_3B(dr2, 0, 1, 0, 2); // yz tensor component
-        stress[5] -= force_scalar[0] * dr2_3B(dr2, 0, 2, 0, 2); // zz tensor component
-
+    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+    {
+        int n = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = i; j < 3; j++)
+            {
+                for (int l = 0; l < npairs; l++)
+                {
+                    stress[n] -= force_scalar[coeffs][l] * dr2_3B(dr2, l, i, l, j);
+                }
+                ++n;
+            }
+        }
+    }
 #else
-        stress[0] -= force_scalar[0] * dr[0 * CHDIM + 0] * dr[0 * CHDIM + 0]; // xx tensor component
-        stress[1] -= force_scalar[0] * dr[0 * CHDIM + 0] * dr[0 * CHDIM + 1]; // xy tensor component
-        stress[2] -= force_scalar[0] * dr[0 * CHDIM + 0] * dr[0 * CHDIM + 2]; // xz tensor component
-        stress[3] -= force_scalar[0] * dr[0 * CHDIM + 1] * dr[0 * CHDIM + 1]; // yy tensor component
-        stress[4] -= force_scalar[0] * dr[0 * CHDIM + 1] * dr[0 * CHDIM + 2]; // yz tensor component
-        stress[5] -= force_scalar[0] * dr[0 * CHDIM + 2] * dr[0 * CHDIM + 2]; // zz tensor component
+    for (int coeffs = 0; coeffs < variablecoeff; coeffs++)
+    {
+        int n = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = i; j < 3; j++)
+            {
+                for (int l = 0; l < npairs; l++)
+                {
+                    stress[n] -= force_scalar[coeffs][l] * dr[l * CHDIM + i] * dr[l * CHDIM + j];
+                }
+                ++n;
+            }
+        }
+    }
 #endif
-        // Accumulate forces/stresses on/from the ik pair
+    nvtxRangePop();
 
-        force[0 * CHDIM + 0] += force_scalar[1] * dr[1 * CHDIM + 0];
-        force[0 * CHDIM + 1] += force_scalar[1] * dr[1 * CHDIM + 1];
-        force[0 * CHDIM + 2] += force_scalar[1] * dr[1 * CHDIM + 2];
-
-        force[2 * CHDIM + 0] -= force_scalar[1] * dr[1 * CHDIM + 0];
-        force[2 * CHDIM + 1] -= force_scalar[1] * dr[1 * CHDIM + 1];
-        force[2 * CHDIM + 2] -= force_scalar[1] * dr[1 * CHDIM + 2];
-
-#ifdef USE_DISTANCE_TENSOR
-        stress[0] -= force_scalar[1] * dr2_3B(dr2, 1, 0, 1, 0); // xx tensor component
-        stress[1] -= force_scalar[1] * dr2_3B(dr2, 1, 0, 1, 1); // xy tensor component
-        stress[2] -= force_scalar[1] * dr2_3B(dr2, 1, 0, 1, 2); // xz tensor component
-        stress[3] -= force_scalar[1] * dr2_3B(dr2, 1, 1, 1, 1); // yy tensor component
-        stress[4] -= force_scalar[1] * dr2_3B(dr2, 1, 1, 1, 2); // yz tensor component
-        stress[5] -= force_scalar[1] * dr2_3B(dr2, 1, 2, 1, 2); // zz tensor component
-#else
-        stress[0] -= force_scalar[1] * dr[1 * CHDIM + 0] * dr[1 * CHDIM + 0]; // xx tensor component
-        stress[1] -= force_scalar[1] * dr[1 * CHDIM + 0] * dr[1 * CHDIM + 1]; // xy tensor component
-        stress[2] -= force_scalar[1] * dr[1 * CHDIM + 0] * dr[1 * CHDIM + 2]; // xz tensor component
-        stress[3] -= force_scalar[1] * dr[1 * CHDIM + 1] * dr[1 * CHDIM + 1]; // yy tensor component
-        stress[4] -= force_scalar[1] * dr[1 * CHDIM + 1] * dr[1 * CHDIM + 2]; // yz tensor component
-        stress[5] -= force_scalar[1] * dr[1 * CHDIM + 2] * dr[1 * CHDIM + 2]; // zz tensor component
-#endif
-
-        // Accumulate forces/stresses on/from the jk pair
-
-        force[1 * CHDIM + 0] += force_scalar[2] * dr[2 * CHDIM + 0];
-        force[1 * CHDIM + 1] += force_scalar[2] * dr[2 * CHDIM + 1];
-        force[1 * CHDIM + 2] += force_scalar[2] * dr[2 * CHDIM + 2];
-
-        force[2 * CHDIM + 0] -= force_scalar[2] * dr[2 * CHDIM + 0];
-        force[2 * CHDIM + 1] -= force_scalar[2] * dr[2 * CHDIM + 1];
-        force[2 * CHDIM + 2] -= force_scalar[2] * dr[2 * CHDIM + 2];
-
-#ifdef USE_DISTANCE_TENSOR
-        stress[0] -= force_scalar[2] * dr2_3B(dr2, 2, 0, 2, 0); // xx tensor component
-        stress[1] -= force_scalar[2] * dr2_3B(dr2, 2, 0, 2, 1); // xy tensor component
-        stress[2] -= force_scalar[2] * dr2_3B(dr2, 2, 0, 2, 2); // xz tensor component
-        stress[3] -= force_scalar[2] * dr2_3B(dr2, 2, 1, 2, 1); // yy tensor component
-        stress[4] -= force_scalar[2] * dr2_3B(dr2, 2, 1, 2, 2); // yz tensor component
-        stress[5] -= force_scalar[2] * dr2_3B(dr2, 2, 2, 2, 2); // zz tensor component
-#else
-        stress[0] -= force_scalar[2] * dr[2 * CHDIM + 0] * dr[2 * CHDIM + 0]; // xx tensor component
-        stress[1] -= force_scalar[2] * dr[2 * CHDIM + 0] * dr[2 * CHDIM + 1]; // xy tensor component
-        stress[2] -= force_scalar[2] * dr[2 * CHDIM + 0] * dr[2 * CHDIM + 2]; // xz tensor component
-        stress[3] -= force_scalar[2] * dr[2 * CHDIM + 1] * dr[2 * CHDIM + 1]; // yy tensor component
-        stress[4] -= force_scalar[2] * dr[2 * CHDIM + 1] * dr[2 * CHDIM + 2]; // yz tensor component
-        stress[5] -= force_scalar[2] * dr[2 * CHDIM + 2] * dr[2 * CHDIM + 2]; // zz tensor component
-#endif
+    for(int i=0; i<npairs; i++)
+    {
+        force_scalar_in[i] = force_scalar[variablecoeff-1][i];
     }
 
-    force_scalar_in[0] = force_scalar[0];
-    force_scalar_in[1] = force_scalar[1];
-    force_scalar_in[2] = force_scalar[2];
+    // assigning force_scalar_in as above since not seeing any significant overhead on CPU
+
+    // force_scalar_in[0] = force_scalar[variablecoeff - 1][0];
+    // force_scalar_in[1] = force_scalar[variablecoeff - 1][1];
+    // force_scalar_in[2] = force_scalar[variablecoeff - 1][2];
+
     nvtxRangePop();
     return;
 }
@@ -1779,7 +1789,6 @@ void chimesFF::compute_4B(const vector<double> &dx, const vector<double> &dr, co
     vector<int> &mapped_pair_idx = pair_int_quad_map[idx];
 
     // Check whether cutoffs are within allowed ranges
-
     for (int i = 0; i < npairs; i++)
         if (dx[i] >= chimes_4b_cutoff[quadidx][1][mapped_pair_idx[i]])
             return;
@@ -1813,7 +1822,7 @@ void chimesFF::compute_4B(const vector<double> &dx, const vector<double> &dr, co
     // Product of all 6 fcuts.
     double fcut_all = fcut[0] * fcut[1] * fcut[2] * fcut[3] * fcut[4] * fcut[5];
 
-    // Product of 5 fcuts divided by dx.
+    // Product of 5 fcuts divided by dx. Index i = product of all fcuts except i.
     double fcut_5[npairs];
     for (int i = 0; i < npairs; i++)
     {
