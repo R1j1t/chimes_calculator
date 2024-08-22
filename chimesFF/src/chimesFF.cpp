@@ -1022,7 +1022,7 @@ void chimesFF::read_parameters(string paramfile)
                     
 	                    // chimes_4b_powers[tmp_int][i] = &tmp_int_vec;                 
                     
-                        chimes_4b_params[tmp_int].push_back(stod(tmp_str_items[9]));
+                        chimes_4b_params[tmp_int][i] = stod(tmp_str_items[9]);
                 
 	                    // if (rank == 0)
                         // 	cout << "chimesFF: " << "\t" << 
